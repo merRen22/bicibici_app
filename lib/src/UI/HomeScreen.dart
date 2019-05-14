@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import './Login/LoginScreen.dart';
 import '../Models/User.dart';
+import 'dart:async';
 import '../Models/Counter.dart';
 import '../Services/UserService.dart';
 //import '../Services/CounterService.dart';
@@ -8,6 +9,8 @@ import '../Values/Constants.dart';
 
 import 'package:amazon_cognito_identity_dart/sig_v4.dart';
 import 'package:amazon_cognito_identity_dart/cognito.dart';
+
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -64,6 +67,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+  Completer<GoogleMapController> _controller = Completer();
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(37.42796133580664, -122.085749655962),
+    zoom: 14.4746,
+  );
+
+  static final CameraPosition _kLake = CameraPosition(
+      bearing: 192.8334901395799,
+      target: LatLng(37.43296265331129, -122.08832357078792),
+      tilt: 59.440717697143555,
+      zoom: 19.151926040649414);
+
+
+  void _onMapCreated(GoogleMapController controller) {
+    _controller.complete(controller);
+  }
+
+
+  static const LatLng _center = const LatLng(45.521563, -122.677433);
+
   @override
   Widget build(BuildContext context) {
     return new FutureBuilder(
@@ -73,56 +98,34 @@ class _HomeScreenState extends State<HomeScreen> {
             if (!_isAuthenticated) {
               return new LoginScreen();
             }
-
             return new Scaffold(
               appBar: new AppBar(
-                title: new Text('Secure Counter'),
+                title: new Text('bici bici'),
               ),
-              body: new Center(
-                child: new Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    new Text(
-                      'Welcome ${_user.name}!',
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                    new Divider(),
-                    new Text(
-                      'You have pushed the button this many times:',
-                    ),
-                    new Text(
-                      '${_counter.count}',
-                      style: Theme.of(context).textTheme.display1,
-                    ),
-                    new Divider(),
-                    new Center(
-                      child: new InkWell(
-                        child: new Text(
-                          'Logout',
-                          style: new TextStyle(color: Colors.blueAccent),
-                        ),
-                        onTap: () {
-                          _userService.signOut();
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                  ],
+              body: GoogleMap(
+                initialCameraPosition: 
+           CameraPosition(
+            target: _center,
+            zoom: 11.0,
+          ),
+                //_kGooglePlex,
+                onMapCreated:_onMapCreated
                 ),
-              ),
-              floatingActionButton: new FloatingActionButton(
-                onPressed: () {
-                  if (snapshot.hasData) {
-                    //_incrementCounter();
-                  }
-                },
-                tooltip: 'Increment',
-                child: new Icon(Icons.add),
-              ),
-            );
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _goToTheLake,
+        label: Text('To the lake!'),
+        icon: Icon(Icons.directions_boat),
+      ),
+    );
           }
           return new Scaffold(
               appBar: new AppBar(title: new Text('Loading...')));
         });
+  }
+
+
+  Future<void> _goToTheLake() async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }
