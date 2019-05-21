@@ -113,6 +113,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     padding: new EdgeInsets.all(20.0),
                     width: screenSize.width,
                     child: new RaisedButton(
+                      shape: StadiumBorder(),
                       child: new Text(
                         'Sign Up',
                         style: new TextStyle(color: Colors.white),
@@ -120,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       onPressed: () {
                         submit(context);
                       },
-                      color: Colors.blue,
+                      color: Colors.purple,
                     ),
                     margin: new EdgeInsets.only(
                       top: 10.0,

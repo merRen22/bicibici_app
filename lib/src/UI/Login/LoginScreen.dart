@@ -133,6 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: new EdgeInsets.fromLTRB(20,20.0,20.0,5.0),
                             width: screenSize.width,
                             child: new RaisedButton(
+                              shape: StadiumBorder(),
                               child: new Text(
                                 'Iniciar sesión',
                                 style: new TextStyle(color: Colors.white),
@@ -150,6 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: new EdgeInsets.fromLTRB(20,5.0,20.0,20.0),
                             width: screenSize.width,
                             child: new RaisedButton(
+                              shape: StadiumBorder(),
                               child: new Text(
                                 'Regístrate',
                                 style: new TextStyle(color: Colors.white),
@@ -161,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         builder: (context) => new SignUpScreen()),
                   );
                               },
-                              color: Colors.green,
+                              color: Colors.purple,
                             ),
                             margin: new EdgeInsets.only(
                               top: 10.0,

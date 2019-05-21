@@ -4,13 +4,13 @@ import '../Models/User.dart';
 import 'dart:async';
 import '../Models/Counter.dart';
 import '../Services/UserService.dart';
-//import '../Services/CounterService.dart';
 import '../Values/Constants.dart';
 
 import 'package:amazon_cognito_identity_dart/sig_v4.dart';
 import 'package:amazon_cognito_identity_dart/cognito.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -22,6 +22,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _userService = new UserService(Constants.userPool);
+  final Set<Marker> _markers = {};
+  Position position;
+
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _markers.add(Marker(
+      // This marker id can be anything that uniquely identifies each marker.
+      markerId: MarkerId("uniqueKey"),
+      position: LatLng(45.521563, -122.677433),
+      infoWindow: InfoWindow(
+        title: 'Estacionamiento',
+        snippet: '3 libres\n4 ocupados',
+      ),
+      onTap: (){},
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+    ));
+  }
+  
   //CounterService _counterService;
   AwsSigV4Client _awsSigV4Client;
   User _user = new User();
@@ -36,9 +59,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   */
+  
 
   Future<UserService> _getValues(BuildContext context) async {
     try {
+      position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
       await _userService.init();
       _isAuthenticated = await _userService.checkAuthenticated();
       if (_isAuthenticated) {
@@ -55,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // get previous count
         //_counterService = new CounterService(_awsSigV4Client);
-       // _counter = await _counterService.getCounter();
+        // _counter = await _counterService.getCounter();
       }
       return _userService;
     } on CognitoClientException catch (e) {
@@ -81,13 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
       tilt: 59.440717697143555,
       zoom: 19.151926040649414);
 
-
   void _onMapCreated(GoogleMapController controller) {
     _controller.complete(controller);
   }
 
-
   static const LatLng _center = const LatLng(45.521563, -122.677433);
+
 
   @override
   Widget build(BuildContext context) {
@@ -100,32 +125,42 @@ class _HomeScreenState extends State<HomeScreen> {
             }
             return new Scaffold(
               appBar: new AppBar(
-                title: new Text('bici bici'),
+                title: new Text('bicibici',style: 
+                          TextStyle(
+                  fontFamily: "Roboto",
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),),
               ),
               body: GoogleMap(
-                initialCameraPosition: 
-           CameraPosition(
-            target: _center,
-            zoom: 11.0,
-          ),
-                //_kGooglePlex,
-                onMapCreated:_onMapCreated
-                ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: Text('To the lake!'),
-        icon: Icon(Icons.directions_boat),
-      ),
-    );
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(position.latitude, position.longitude),
+                    zoom: 19.0,
+                  ),
+                  //_kGooglePlex,
+                  mapType: MapType.normal,
+                  markers: _markers,
+                  
+                  onMapCreated: _onMapCreated),
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: _goToTheLake,
+                label: Text('To the lake!'),
+                icon: Icon(Icons.directions_boat),
+              ),
+            );
           }
           return new Scaffold(
               appBar: new AppBar(title: new Text('Loading...')));
         });
   }
 
-
   Future<void> _goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
+
+
+
 }

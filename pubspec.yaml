@@ -20,7 +20,7 @@ dependencies:
   shared_preferences: ^0.5.2
   amazon_cognito_identity_dart: ^0.0.22
   google_maps_flutter: ^0.5.13
-  location: ^2.3.5
+  geolocator: '^4.0.3'
   flutter:
     sdk: flutter
 
