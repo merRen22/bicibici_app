@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../Models/User.dart';
 import '../../Values/Constants.dart';
 import '../../Services/UserService.dart';
-
+import '../../Values/TextStyles.dart';
 import './LoginScreen.dart';
 
 import 'package:amazon_cognito_identity_dart/cognito.dart';
@@ -100,7 +100,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Confirm Account'),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.purple),
+        title: new Text('bicibici', style: TextStyles.appBarTitle()),
       ),
       body: new Builder(
           builder: (BuildContext context) => new Container(
@@ -113,7 +115,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                         title: new TextFormField(
                           initialValue: widget.email,
                           decoration: new InputDecoration(
-                              hintText: 'example@inspire.my',
+                              hintText: 'example@bicibici.my',
                               labelText: 'Email'),
                           keyboardType: TextInputType.emailAddress,
                           onSaved: (String email) {
@@ -125,7 +127,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                         leading: const Icon(Icons.lock),
                         title: new TextFormField(
                           decoration: new InputDecoration(
-                              labelText: 'Confirmation Code'),
+                              labelText: 'Código de confirmación'),
                           onSaved: (String code) {
                             confirmationCode = code;
                           },
@@ -135,14 +137,15 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                         padding: new EdgeInsets.all(20.0),
                         width: screenSize.width,
                         child: new RaisedButton(
+                          shape: StadiumBorder(),
+                          color: Colors.purple,
                           child: new Text(
-                            'Submit',
+                            'Confirmar',
                             style: new TextStyle(color: Colors.white),
                           ),
                           onPressed: () {
                             _submit(context);
                           },
-                          color: Colors.blue,
                         ),
                         margin: new EdgeInsets.only(
                           top: 10.0,
@@ -151,8 +154,8 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                       new Center(
                         child: new InkWell(
                           child: new Text(
-                            'Resend Confirmation Code',
-                            style: new TextStyle(color: Colors.blueAccent),
+                            'Enviar nuevo código',
+                            style: new TextStyle(color: Colors.purple),
                           ),
                           onTap: () {
                             _resendConfirmation(context);

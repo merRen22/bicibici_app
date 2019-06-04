@@ -3,6 +3,7 @@ import '../../Models/User.dart';
 import '../../Values/Constants.dart';
 import '../../Services/UserService.dart';
 import './ConfirmationScreen.dart';
+import '../../Values/TextStyles.dart';
 
 import 'package:amazon_cognito_identity_dart/cognito.dart';
 
@@ -14,6 +15,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   User _user = new User();
+  bool passwordVisible = true;
   final userService = new UserService(Constants.userPool);
 
   void submit(BuildContext context) async {
@@ -24,23 +26,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
     try {
       _user = await userService.signUp(_user.email, _user.password, _user.name);
       signUpSuccess = true;
-      message = 'User sign up successful!';
+      message = 'Se registró la cuenta 😊';
     } on CognitoClientException catch (e) {
       if (e.code == 'UsernameExistsException' ||
           e.code == 'InvalidParameterException' ||
           e.code == 'ResourceNotFoundException') {
         message = e.message;
       } else {
-        message = 'Unknown client error occurred';
+        message = 'Los campos no cumplen con las condiciones necesarias';
       }
     } catch (e) {
-      message = 'Unknown error occurred';
+      message = 'Hubo un problema en la conexión 😢';
     }
 
     final snackBar = new SnackBar(
       content: new Text(message),
+      backgroundColor: message=="Se registró la cuenta 😊"?Colors.green:Colors.red,
       action: new SnackBarAction(
         label: 'OK',
+        textColor: Colors.white,
         onPressed: () {
           if (signUpSuccess) {
             Navigator.pop(context);
@@ -63,72 +67,69 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Size screenSize = MediaQuery.of(context).size;
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Sign Up'),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.purple),
+        title: new Text('bicibici', style: TextStyles.appBarTitle()),
       ),
       body: new Builder(
         builder: (BuildContext context) {
-          return new Container(
-            child: new Form(
-              key: _formKey,
-              child: new ListView(
-                children: <Widget>[
-                  /*
-                  new ListTile(
-                    leading: const Icon(Icons.account_box),
-                    title: new TextFormField(
-                      decoration: new InputDecoration(labelText: 'Name'),
-                      onSaved: (String name) {
-                        _user.name = name;
-                      },
-                    ),
+          return new Form(
+            key: _formKey,
+            child: new ListView(
+              children: <Widget>[
+                new ListTile(
+                  leading: const Icon(Icons.email),
+                  title: new TextFormField(
+                    decoration: new InputDecoration(
+                        hintText: 'ejemplo@bicibici.com', labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    onSaved: (String email) {
+                      _user.email = email;
+                    },
                   ),
-                  */
-                  new ListTile(
-                    leading: const Icon(Icons.email),
-                    title: new TextFormField(
-                      decoration: new InputDecoration(
-                          hintText: 'example@inspire.my', labelText: 'Email'),
-                      keyboardType: TextInputType.emailAddress,
-                      onSaved: (String email) {
-                        _user.email = email;
-                      },
-                    ),
-                  ),
-                  new ListTile(
-                    leading: const Icon(Icons.lock),
-                    title: new TextFormField(
-                      decoration: new InputDecoration(
-                        hintText: 'Password!',
+                ),
+                new ListTile(
+                  leading: const Icon(Icons.lock),
+                  title: new TextFormField(
+                    decoration: new InputDecoration(
+                      hintText: 'Password!',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          passwordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: Colors.purple[200],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            passwordVisible = !passwordVisible;
+                          });
+                        },
                       ),
-                      obscureText: true,
-                      onSaved: (String password) {
-                        _user.password = password;
-                      },
                     ),
+                    obscureText: passwordVisible,
+                    onSaved: (String password) {
+                      _user.password = password;
+                    },
                   ),
-                  new Container(
-                    padding: new EdgeInsets.all(20.0),
-                    width: screenSize.width,
-                    child: new RaisedButton(
-                      shape: StadiumBorder(),
-                      child: new Text(
-                        'Sign Up',
-                        style: new TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () {
-                        submit(context);
-                      },
-                      color: Colors.purple,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: new RaisedButton(
+                    shape: StadiumBorder(),
+                    child: new Text(
+                      'Registrarme',
+                      style: new TextStyle(color: Colors.white),
                     ),
-                    margin: new EdgeInsets.only(
-                      top: 10.0,
-                    ),
+                    onPressed: () {
+                      submit(context);
+                    },
+                    color: Colors.purple,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },

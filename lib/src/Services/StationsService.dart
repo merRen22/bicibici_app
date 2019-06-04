@@ -3,13 +3,13 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Models/Counter.dart';
 
-class CounterService {
+class Stationsservice {
   AwsSigV4Client awsSigV4Client;
-  CounterService(this.awsSigV4Client);
+  Stationsservice(this.awsSigV4Client);
 
-  Future<Counter> getCounter() async {
+  Future<Counter> getStations() async {
     final signedRequest =
-        new SigV4Request(awsSigV4Client, method: 'GET', path: '/counter');
+        new SigV4Request(awsSigV4Client, method: 'GET', path: '/Bike');
     final response =
         await http.get(signedRequest.url, headers: signedRequest.headers);
     return new Counter.fromJson(json.decode(response.body));

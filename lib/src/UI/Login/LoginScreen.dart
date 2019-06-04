@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             title: new TextFormField(
                               initialValue: widget.email,
                               decoration: new InputDecoration(
-                                  hintText: 'example@inspire.my',
+                                  hintText: 'example@bicibici.com',
                                   labelText: 'Email'),
                               keyboardType: TextInputType.emailAddress,
                               onSaved: (String email) {

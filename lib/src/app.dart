@@ -24,6 +24,7 @@ class App extends StatelessWidget with PortraitModeMixin {
   Widget build(BuildContext context) {
     super.build(context);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // Define the default Brightness and Colors
         brightness: Brightness.light,

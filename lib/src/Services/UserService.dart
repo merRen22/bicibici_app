@@ -108,21 +108,13 @@ class UserService {
     return _session.isValid();
   }
 
-  /// Sign up new user
   Future<User> signUp(String email, String password, String name) async {
-    //CognitoUserPoolData data;
-    /*
-    final userAttributes = [
-      new AttributeArg(name: 'first_name', value: "Renato"),
-      new AttributeArg(name: 'last_name', value: "Mercado"),
-    ];
-    */
-
     var data;
     try {
      data = await _userPool.signUp(email, password); 
     } catch (e) {
       print(e);
+      throw e;
     }
 
     final user = new User();

@@ -4,14 +4,15 @@ import '../Models/User.dart';
 import 'dart:async';
 import '../Models/Counter.dart';
 import '../Services/UserService.dart';
+import '../Services/StationsService.dart';
 import '../Values/Constants.dart';
+import '../Values/TextStyles.dart';
 
 import 'package:amazon_cognito_identity_dart/sig_v4.dart';
 import 'package:amazon_cognito_identity_dart/cognito.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);
@@ -24,8 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _userService = new UserService(Constants.userPool);
   final Set<Marker> _markers = {};
   Position position;
-
-
 
   @override
   void initState() {
@@ -40,12 +39,12 @@ class _HomeScreenState extends State<HomeScreen> {
         title: 'Estacionamiento',
         snippet: '3 libres\n4 ocupados',
       ),
-      onTap: (){},
+      onTap: () {},
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
     ));
   }
-  
-  //CounterService _counterService;
+
+  Stationsservice _counterService;
   AwsSigV4Client _awsSigV4Client;
   User _user = new User();
   Counter _counter = new Counter(0);
@@ -59,11 +58,12 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
   */
-  
+
 
   Future<UserService> _getValues(BuildContext context) async {
     try {
-      position = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      position = await Geolocator()
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
       await _userService.init();
       _isAuthenticated = await _userService.checkAuthenticated();
@@ -72,16 +72,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _user = await _userService.getCurrentUser();
 
         // get session credentials
-        /*
         final credentials = await _userService.getCredentials();
         _awsSigV4Client = new AwsSigV4Client(
-            credentials.accessKeyId, credentials.secretAccessKey, Constants.endpoint,
+            credentials.accessKeyId, credentials.secretAccessKey, Constants.stationsEndPoint,
             region: Constants.region, sessionToken: credentials.sessionToken);
-*/
 
         // get previous count
-        //_counterService = new CounterService(_awsSigV4Client);
-        // _counter = await _counterService.getCounter();
+        _counterService = Stationsservice(_awsSigV4Client);
+        _counter = await _counterService.getStations();
       }
       return _userService;
     } on CognitoClientException catch (e) {
@@ -89,10 +87,8 @@ class _HomeScreenState extends State<HomeScreen> {
         await _userService.signOut();
         Navigator.pop(context);
       }
-      throw e;
     }
   }
-
 
   Completer<GoogleMapController> _controller = Completer();
 
@@ -113,7 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const LatLng _center = const LatLng(45.521563, -122.677433);
 
-
   @override
   Widget build(BuildContext context) {
     return new FutureBuilder(
@@ -125,24 +120,19 @@ class _HomeScreenState extends State<HomeScreen> {
             }
             return new Scaffold(
               appBar: new AppBar(
-                title: new Text('bicibici',style: 
-                          TextStyle(
-                  fontFamily: "Roboto",
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),),
+                backgroundColor: Colors.white,
+                iconTheme: IconThemeData(color: Colors.purple),
+                title: new Text('bicibici', style: TextStyles.appBarTitle()),
               ),
               body: GoogleMap(
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
                   initialCameraPosition: CameraPosition(
                     target: LatLng(position.latitude, position.longitude),
                     zoom: 19.0,
                   ),
-                  //_kGooglePlex,
-                  mapType: MapType.normal,
+                  mapType: MapType.terrain,
                   markers: _markers,
-                  
                   onMapCreated: _onMapCreated),
               floatingActionButton: FloatingActionButton.extended(
                 onPressed: _goToTheLake,
@@ -160,7 +150,4 @@ class _HomeScreenState extends State<HomeScreen> {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
-
-
-
 }
