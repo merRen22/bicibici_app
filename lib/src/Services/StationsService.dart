@@ -1,25 +1,32 @@
-import 'package:amazon_cognito_identity_dart/sig_v4.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../Models/Counter.dart';
+
+import 'package:http/http.dart' as Client;
+import 'package:bicibici/src/Models/Station.dart';
+import 'package:bicibici/src/Services/Configuration.dart';
 
 class Stationsservice {
-  AwsSigV4Client awsSigV4Client;
-  Stationsservice(this.awsSigV4Client);
 
-  Future<Counter> getStations() async {
-    final signedRequest =
-        new SigV4Request(awsSigV4Client, method: 'GET', path: '/Bike');
-    final response =
-        await http.get(signedRequest.url, headers: signedRequest.headers);
-    return new Counter.fromJson(json.decode(response.body));
+    Future<List<Station>> getNearStations(double latitude, double longitude)async {
+    List<Station> estaciones = List<Station>();
+    var dataJson = json.encode({
+      'latitude': latitude,
+      'longitude': longitude
+    });
+
+    try {
+      await Client.post(Configuration.obtenerEstacionesCercanas,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
+        if (response.statusCode == 200) {
+          Map<String, dynamic> parsedJson = json.decode(response.body);
+          
+          if(parsedJson['sucess']){
+            (parsedJson['Stations'] as List).forEach((e){estaciones.add(Station.fromJson(e));});
+          }
+        }
+      });
+    } catch (error) {
+      estaciones = List<Station>();
+    }
+    return estaciones;
   }
 
-  Future<Counter> incrementCounter() async {
-    final signedRequest =
-        new SigV4Request(awsSigV4Client, method: 'PUT', path: '/counter');
-    final response =
-        await http.put(signedRequest.url, headers: signedRequest.headers);
-    return new Counter.fromJson(json.decode(response.body));
-  }
 }

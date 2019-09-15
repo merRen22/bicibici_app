@@ -1,20 +1,22 @@
+import 'package:bicibici/src/Models/Station.dart';
+import 'package:bicibici/src/Models/Storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:amazon_cognito_identity_dart/cognito.dart';
 import '../Values/Constants.dart';
 import '../Models/User.dart';
-import '../Models/Storage.dart';
 
 class UserService {
   CognitoUserPool _userPool;
   CognitoUser _cognitoUser;
   CognitoUserSession _session;
-  UserService(this._userPool);
   CognitoCredentials credentials;
+
+  UserService(this._userPool);
 
   /// Initiate user session from local storage if present
   Future<bool> init() async {
     final prefs = await SharedPreferences.getInstance();
-    final storage = new Storage(prefs);
+    final storage = Storage(prefs);
     _userPool.storage = storage;
 
     _cognitoUser = await _userPool.getCurrentUser();
@@ -27,17 +29,15 @@ class UserService {
 
   /// Get existing user from session with his/her attributes
   Future<User> getCurrentUser() async {
-    if (_cognitoUser == null || _session == null) {
-      return null;
-    }
-    if (!_session.isValid()) {
+    //_cognitoUser = new CognitoUser(email, _userPool, storage: _userPool.storage);
+    if (_cognitoUser == null || _session == null || !_session.isValid()) {
       return null;
     }
     final attributes = await _cognitoUser.getUserAttributes();
     if (attributes == null) {
       return null;
     }
-    final user = new User.fromUserAttributes(attributes);
+    final user = User.fromUserAttributes(attributes);
     user.hasAccess = true;
     return user;
   }
@@ -47,17 +47,16 @@ class UserService {
     if (_cognitoUser == null || _session == null) {
       return null;
     }
-    credentials = new CognitoCredentials(Constants.identityPoolId, _userPool);
+    credentials = CognitoCredentials(Constants.identityPoolId, _userPool);
     await credentials.getAwsCredentials(_session.getIdToken().getJwtToken());
     return credentials;
   }
 
   /// Login user
   Future<User> login(String email, String password) async {
-    _cognitoUser =
-        new CognitoUser(email, _userPool, storage: _userPool.storage);
+    _cognitoUser = CognitoUser(email, _userPool, storage: _userPool.storage);
 
-    final authDetails = new AuthenticationDetails(
+    final authDetails = AuthenticationDetails(
       username: email,
       password: password,
     );
@@ -80,7 +79,7 @@ class UserService {
     }
 
     final attributes = await _cognitoUser.getUserAttributes();
-    final user = new User.fromUserAttributes(attributes);
+    final user = User.fromUserAttributes(attributes);
     user.confirmed = isConfirmed;
     user.hasAccess = true;
 
@@ -89,14 +88,14 @@ class UserService {
 
   /// Confirm user's account with confirmation code sent to email
   Future<bool> confirmAccount(String email, String confirmationCode) async {
-    _cognitoUser = new CognitoUser(email, _userPool, storage: _userPool.storage);
+    _cognitoUser = CognitoUser(email, _userPool, storage: _userPool.storage);
 
     return await _cognitoUser.confirmRegistration(confirmationCode);
   }
 
   /// Resend confirmation code to user's email
   Future<void> resendConfirmationCode(String email) async {
-    _cognitoUser = new CognitoUser(email, _userPool, storage: _userPool.storage);
+    _cognitoUser = CognitoUser(email, _userPool, storage: _userPool.storage);
     await _cognitoUser.resendConfirmationCode();
   }
 
@@ -108,29 +107,66 @@ class UserService {
     return _session.isValid();
   }
 
-  Future<User> signUp(String email, String password, String name) async {
+  Future<User> signUp(User user) async {
     var data;
     try {
-     data = await _userPool.signUp(email, password); 
+      final userAttributes = [
+        AttributeArg(name: 'address', value: user.address),
+        AttributeArg(name: 'name', value: user.name),
+        AttributeArg(name: 'phone_number', value: user.phone),
+        ];
+        
+      data = await _userPool.signUp(user.email,user.password,userAttributes: userAttributes); 
     } catch (e) {
       print(e);
       throw e;
     }
 
-    final user = new User();
-    user.email = email;
-    user.name = name;
-    user.confirmed = data.userConfirmed;
+    final userConfirmed = User();
+    userConfirmed.email = user.email;
+    userConfirmed.name = user.name;
+    userConfirmed.confirmed = data.userConfirmed;
 
-    return user;
+    return userConfirmed;
   }
 
-  Future<void> signOut() async {
-    if (credentials != null) {
-      await credentials.resetAwsCredentials();
-    }
+  Future signOut() async {
     if (_cognitoUser != null) {
       return _cognitoUser.signOut();
     }
   }
+
+  Future<bool> resetPassword(String oldPassword, String newPassword) async {
+    bool passwordChanged = false;
+    try {
+      passwordChanged = await _cognitoUser.changePassword(oldPassword,newPassword);
+    } catch (e) {
+      print(e);
+    }
+    return passwordChanged;
+  }
+
+  Future<bool> deleteUser() async {
+    bool userDeleted = false;
+    try {
+      userDeleted = await _cognitoUser.deleteUser();
+    } catch (e) {
+      print(e);
+    }
+    print(userDeleted);
+    return userDeleted;
+  }
+
+  Future<bool> updateUserData(List<CognitoUserAttribute> attributes) async {
+    bool _userDataUpadted = false;
+    try {
+      await _cognitoUser.updateAttributes(attributes);
+      _userDataUpadted = true;
+    } catch (e) {
+      print(e);
+      _userDataUpadted = false;
+    }
+    return _userDataUpadted;
+  }
+
 }

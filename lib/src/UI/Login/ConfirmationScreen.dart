@@ -102,9 +102,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       appBar: new AppBar(
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.purple),
-        title: new Text('bicibici', style: TextStyles.appBarTitle()),
+        title: new Text('bicibici', style: TextStyles.mediumPurpleFatText()),
       ),
-      body: new Builder(
+      body: Builder(
           builder: (BuildContext context) => new Container(
                 child: new Form(
                   key: _formKey,

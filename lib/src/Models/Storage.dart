@@ -1,6 +1,7 @@
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:amazon_cognito_identity_dart/cognito.dart';
 import 'dart:convert';
+
+import 'package:amazon_cognito_identity_dart/cognito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage extends CognitoStorage {
   SharedPreferences _prefs;

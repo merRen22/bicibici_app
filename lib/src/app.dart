@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../src/UI/Login/LoginScreen.dart';
-import '../src/UI/HomeScreen.dart';
+import 'UI/login/LoginScreen.dart';
+import 'UI/tabs/HomeScreen.dart';
+
 
 mixin PortraitModeMixin on StatelessWidget {
   @override
@@ -34,7 +35,7 @@ class App extends StatelessWidget with PortraitModeMixin {
         body: LoginScreen(),
       ),
       routes: <String, WidgetBuilder>{
-        '/Home': (BuildContext context) => new HomeScreen()
+        '/Home': (BuildContext context) => HomeScreen()
       },
     );
   }
