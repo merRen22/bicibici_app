@@ -14,14 +14,17 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   shared_preferences: ^0.5.2
   amazon_cognito_identity_dart: ^0.0.22
+
   google_maps_flutter: ^0.5.21
   geolocator: '^4.0.3'
+  flutter_barcode_scanner: ^0.1.5+1
   http: ^0.12.0+1
+  percent_indicator: "^2.1.1"
   flutter:
     sdk: flutter
 

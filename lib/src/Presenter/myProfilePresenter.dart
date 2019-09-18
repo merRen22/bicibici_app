@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:amazon_cognito_identity_dart/cognito.dart';
+import 'package:bicibici/src/Models/Payment.dart';
 import 'package:bicibici/src/Models/User.dart';
+import 'package:bicibici/src/Services/PaymentService.dart';
 import 'package:bicibici/src/Services/UserService.dart';
 import 'package:bicibici/src/Values/Constants.dart';
 
 class MyProfilePresenter {
   final UserService _userService = UserService(Constants.userPool);
+  final PaymentService _paymentService = PaymentService();
  
   Future<User> getCurrentUser() async {
     await _userService.init();
@@ -28,6 +31,12 @@ class MyProfilePresenter {
   Future<bool> updateUserData(List<CognitoUserAttribute> attributes) async {
     return await _userService.updateUserData(attributes);
   }
+  
+  Future<Payment> obtenerMembresiaUsuario(String uuidUser) async {
+    return await _paymentService.obtenerMembresiaUsuario(uuidUser);
+  }
+
+  
   
 }
 

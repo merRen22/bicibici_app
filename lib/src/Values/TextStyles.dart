@@ -2,6 +2,24 @@ import 'package:flutter/material.dart';
 
 class TextStyles {
 
+  
+  static TextStyle extralargeGreenFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 48,
+        fontWeight: FontWeight.w700,
+        color: Colors.greenAccent[400]);
+  }
+
+  
+  static TextStyle largeGreenFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: Colors.greenAccent[400]);
+  }
+
 
   static TextStyle mediumBlackFatText() {
     return TextStyle(
@@ -18,6 +36,22 @@ class TextStyles {
         fontWeight: FontWeight.w700,
         color: Colors.purple);
   }
+  
+  static TextStyle mediumWhiteFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        color: Colors.white);
+  }
+  
+  static TextStyle mediumGreenFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        color: Colors.greenAccent[400]);
+  }
 
 
   static TextStyle extraSmallPurpleFatText() {
@@ -29,12 +63,13 @@ class TextStyles {
   }
 
 
-  static TextStyle mediumWhiteFatText() {
+
+  static TextStyle smallBlackFatText() {
     return TextStyle(
         fontFamily: "Roboto",
-        fontSize: 26,
+        fontSize: 16,
         fontWeight: FontWeight.w700,
-        color: Colors.white);
+        color: Colors.black87);
   }
 
   static TextStyle smallWhiteFatText() {
@@ -43,5 +78,13 @@ class TextStyles {
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: Colors.white);
+  }
+
+  static TextStyle smallPurpleFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: Colors.purple);
   }
 }

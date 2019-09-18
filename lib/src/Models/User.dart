@@ -6,6 +6,7 @@ class User {
   String password;
   String address;
   String phone;
+  int activo;
 
   String oldPassword;
   String newPassword;
@@ -35,6 +36,13 @@ class User {
     });
     return user;
   }
+  
+  factory User.fromJson(parsedJson) {
+    final user = User();
+    user.activo = parsedJson['activo'];
+    return user;
+  }
+
 
   List<CognitoUserAttribute>  toUserAttributes() {
     return [

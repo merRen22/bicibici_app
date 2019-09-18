@@ -22,7 +22,7 @@ class SnackBars {
     final scaffold = Scaffold.of(context);
     scaffold.showSnackBar(
       SnackBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.red,
         content: Text(
           message,
           style: TextStyle(color: Colors.white),
