@@ -1,3 +1,4 @@
+import 'package:bicibici/src/Values/SnackBars.dart';
 import 'package:flutter/material.dart';
 import '../../Models/User.dart';
 import '../../Values/Constants.dart';
@@ -13,143 +14,149 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  User _user = new User();
+  User _user = User();
   bool passwordVisible = true;
-  final userService = new UserService(Constants.userPool);
+  final userService = UserService(Constants.userPool);
+  
+  var _formMailKey = GlobalKey<FormFieldState>();
+  var _formPasswordKey = GlobalKey<FormFieldState>();
+  var _formNameKey = GlobalKey<FormFieldState>();
+  var _formAddressKey = GlobalKey<FormFieldState>();
+  var _formPhoneKey = GlobalKey<FormFieldState>();
 
   void submit(BuildContext context) async {
-    _formKey.currentState.save();
-
-    String message;
-    bool signUpSuccess = false;
-    try {
-      _user = await userService.signUp(_user);
-      signUpSuccess = true;
-      message = 'Se registró la cuenta 😊';
-    } on CognitoClientException catch (e) {
-      if (e.code == 'UsernameExistsException' ||
-          e.code == 'InvalidParameterException' ||
-          e.code == 'ResourceNotFoundException') {
-        message = e.message;
-      } else {
-        message = 'Los campos no cumplen con las condiciones necesarias';
-      }
-    } catch (e) {
-      message = 'Hubo un problema en la conexión 😢';
-    }
-
-    final snackBar = SnackBar(
-      content: Text(message),
-      backgroundColor: message=="Se registró la cuenta 😊"?Colors.green:Colors.red,
-      action: SnackBarAction(
-        label: 'OK',
-        textColor: Colors.white,
-        onPressed: () {
-          if (signUpSuccess) {
-            Navigator.pop(context);
-            if (!_user.confirmed) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ConfirmationScreen(email: _user.email)),
-              );
-            }
+    if(
+      _formMailKey.currentState.value.toString().isEmpty ||
+      _formPasswordKey.currentState.value.toString().isEmpty ||
+      _formNameKey.currentState.value.toString().isEmpty ||
+      _formAddressKey.currentState.value.toString().isEmpty ||
+      _formPhoneKey.currentState.value.toString().isEmpty
+    ){
+      SnackBars.showOrangeMessage(context, "Debe completar todos los campos");
+    }else{ 
+      if(!_formMailKey.currentState.value.toString().contains("@")){
+        SnackBars.showOrangeMessage(context, "Tu numero de telefono no cuenta con los digitos necesarios");
+      }else{
+      if(_formPhoneKey.currentState.value.toString().length<9){
+        SnackBars.showOrangeMessage(context, "Tu numero de telefono no cuenta con los digitos necesarios");
+      }else{
+      if(_formPasswordKey.currentState.value.toString().length<8){
+        SnackBars.showOrangeMessage(context, "Tu contraseña debe tener 8 caracteres como mínimo");
+      }else{
+        _user.email = _formMailKey.currentState.value.toString();
+        _user.password = _formPasswordKey.currentState.value.toString();
+        _user.name = _formNameKey.currentState.value.toString();
+        _user.address = _formAddressKey.currentState.value.toString();
+        _user.phone = "+51" +  _formPhoneKey.currentState.value.toString();
+        try {
+          _user = await userService.signUp(_user);
+          Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
+        } on CognitoClientException catch (e) {
+          if (e.code == 'UsernameExistsException' ||
+              e.code == 'InvalidParameterException' ||
+              e.code == 'ResourceNotFoundException') {
+            SnackBars.showOrangeMessage(context, e.message);//"No se encuentro al usuario en el sistema");
+          } else {
+            SnackBars.showOrangeMessage(context, 'Los campos no cumplen con las condiciones necesarias');
           }
-        },
-      ),
-      duration: Duration(seconds: 30),
-    );
+        } catch (e) {
+          SnackBars.showRedMessage(context, "Hubo un error inesperado");
+        }
 
-    Scaffold.of(context).showSnackBar(snackBar);
+      }
+    }}}
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.purple),
         title: Text('bicibici', style: TextStyles.mediumPurpleFatText()),
       ),
       body: Builder(
         builder: (BuildContext context) {
-          return Form(
-            key: _formKey,
-            child: ListView(
+          return ListView(
               children: <Widget>[
-                ListTile(
-                  leading: const Icon(Icons.email),
-                  title: TextFormField(
-                    decoration: InputDecoration(
-                        hintText: 'ejemplo@bicibici.com', labelText: 'Email'),
-                    keyboardType: TextInputType.emailAddress,
-                    onSaved: (String email) {
-                      _user.email = email;
-                    },
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: 'Password!',
-                      labelText: 'Contraseña',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          passwordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.purple[200],
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            passwordVisible = !passwordVisible;
-                          });
-                        },
-                      ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    leading: const Icon(Icons.email),
+                    title: TextFormField(
+                      decoration: InputDecoration(hintText: 'ejemplo@bicibici.com', labelText: 'Email'),
+                      keyboardType: TextInputType.emailAddress,
+                      key: _formMailKey,
                     ),
-                    obscureText: passwordVisible,
-                    onSaved: (String password) {
-                      _user.password = password;
-                    },
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(
+                    leading: const Icon(Icons.lock),
+                    title: TextFormField(
+                      decoration: InputDecoration(
+                        hintText: 'Password!',
+                        labelText: 'Contraseña',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            passwordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.purple[200],
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              passwordVisible = !passwordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      obscureText: passwordVisible,
+                      key: _formPasswordKey,
+                    ),
+                  ),
+                ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              leading: const Icon(Icons.person),
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    hintText: 'nombre',
+                                    labelText: 'Nombre'),
+                                keyboardType: TextInputType.text,
+                                key: _formNameKey,
+                              ),
+                            ),
+                          ),
                 
-                          ListTile(
-                            leading: const Icon(Icons.person),
-                            title: TextFormField(
-                              decoration: InputDecoration(
-                                  hintText: 'nombre',
-                                  labelText: 'Nombre'),
-                              keyboardType: TextInputType.text,
-                              onSaved: (String name) {
-                                _user.name = name;
-                              },
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              leading: const Icon(Icons.home),
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    hintText: 'dirección',
+                                    labelText: 'dirección'),
+                                keyboardType: TextInputType.text,
+                                key: _formAddressKey,
+                              ),
                             ),
                           ),
-                          ListTile(
-                            leading: const Icon(Icons.home),
-                            title: TextFormField(
-                              decoration: InputDecoration(
-                                  hintText: 'dirección',
-                                  labelText: 'dirección'),
-                              keyboardType: TextInputType.text,
-                              onSaved: (String address) {
-                                _user.address = address;
-                              },
-                            ),
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.phone),
-                            title: TextFormField(
-                              decoration: InputDecoration(
-                                  hintText: 'teléfono',
-                                  labelText: 'teléfono'),
-                              keyboardType: TextInputType.number,
-                              onSaved: (String phone) {
-                                _user.phone = phone;
-                              },
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ListTile(
+                              leading: const Icon(Icons.phone),
+                              title: TextFormField(
+                                decoration: InputDecoration(
+                                    hintText: 'teléfono',
+                                    labelText: 'teléfono'),
+                                keyboardType: TextInputType.number,
+                                maxLength: 9,
+                                key: _formPhoneKey,
+                              ),
                             ),
                           ),
                 Row(
@@ -163,7 +170,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             'Registrarme',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyles.smallWhiteFatText(),
                           ),
                         ),
                         onPressed: () {
@@ -175,7 +182,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ],
                 ),
               ],
-            ),
           );
         },
       ),

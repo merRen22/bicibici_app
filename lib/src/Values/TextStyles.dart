@@ -19,6 +19,14 @@ class TextStyles {
         fontWeight: FontWeight.w700,
         color: Colors.greenAccent[400]);
   }
+  
+  static TextStyle largeBlackFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: Colors.black87);
+  }
 
 
   static TextStyle mediumBlackFatText() {

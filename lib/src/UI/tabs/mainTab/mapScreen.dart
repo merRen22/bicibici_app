@@ -5,6 +5,7 @@ import 'package:bicibici/src/Presenter/mainTabPresenter.dart';
 import 'package:bicibici/src/UI/tabs/mainTab/Pagos/DialogSeleccionarPago.dart';
 import 'package:bicibici/src/Values/TextStyles.dart';
 import 'package:bicibici/src/Values/UtilityWidgets.dart';
+import 'package:bicibici/src/utils/MapCustomDialogs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/material.dart';
@@ -42,13 +43,21 @@ class _MapScreenState extends State<MapScreen>{
     super.initState();
   }
 
-  void initMarker(request, requestId) {
+  Future <BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
+    BitmapDescriptor bitmapImage;
+    ImageConfiguration configuration = ImageConfiguration();
+     bitmapImage = await BitmapDescriptor.fromAssetImage(configuration,iconPath);
+
+    return bitmapImage;
+  }
+
+  void initMarker(request, requestId) async {
     var markerIdVal = requestId;
     final MarkerId markerId = MarkerId(markerIdVal);
     // creating a new MARKER
     final Marker marker = Marker(
         markerId: markerId,
-        //icon: BitmapDescriptor.fromImageAsset(),
+      icon: await _createMarkerImageFromAsset('images/bikeparking.png'),
         position: LatLng(request.latitude, request.longitude),
         onTap: () async {
           //MapCustomDialogs.progressDialog(context: context, message: 'Fetching');
@@ -77,6 +86,10 @@ class _MapScreenState extends State<MapScreen>{
                               Text(
                                 request.address,
                                 style: TextStyles.mediumBlackFatText(),
+                              ),
+                              Text(
+                                (request.totalSlots - request.availableSlots).toString() + " bicicletas disponibles",
+                                style: TextStyles.smallPurpleFatText(),
                               ),
                               Text(
                                 request.availableSlots.toString() + " espacios disponibles",
@@ -217,17 +230,15 @@ class _MapScreenState extends State<MapScreen>{
   }
 
   void showModalUserEmergencyContact(){
-    showModalBottomSheet(
-              backgroundColor: Colors.transparent,
+    showDialog(
+              barrierDismissible: false,
               context: context,
-              builder: (BuildContext context) {
-                return Container(
-                  margin: const EdgeInsets.all(8.0),
+              builder: (BuildContext contextDialog) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+                title: Text("contacto de emerrgencia",style: TextStyles.mediumPurpleFatText(),textAlign: TextAlign.center,),
+                content: Container(
                   height: 180.0,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(15)),
-                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
@@ -238,11 +249,10 @@ class _MapScreenState extends State<MapScreen>{
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
                               Container(
-                                width: MediaQuery.of(context).size.width-100,
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    "Tu contacto de emerrgencia es MCaldas@gym.com",
+                                    "MCaldas@gym.com",
                                     style: TextStyles.smallBlackFatText(),
                                     textAlign: TextAlign.center,
                                   ),
@@ -255,10 +265,12 @@ class _MapScreenState extends State<MapScreen>{
                                     padding: const EdgeInsets.all(8.0),
                                     child: FlatButton(
                                       color: Colors.purple,
-                                      onPressed: (){
+                                      onPressed: () async {
+                                        MapCustomDialogs.progressDialog(context: context,message: "Preparamos tu viaje");
+                                        await presenter.desbloquearBicicleta(auxTrip);
+                                        Navigator.of(context).pop();
                                         Navigator.of(context).pop();
                                         userState = 3;
-                                        presenter.desbloquearBicicleta(auxTrip);
                                       },
                                       shape: StadiumBorder(),
                                       child: Text("Iniciar viaje", style: TextStyles.smallWhiteFatText(),),
@@ -272,8 +284,7 @@ class _MapScreenState extends State<MapScreen>{
                       ),
                     ],
                   ),
-                );
-              });
+                ));});
   }
 
   Future _obtenerDataUsuario() async {
@@ -293,8 +304,12 @@ class _MapScreenState extends State<MapScreen>{
 
   Future _getUserPosition() async {
       userPosition = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      auxTrip.originLatitude = userPosition.latitude;
-      auxTrip.originLongitude = userPosition.longitude; 
+      if(userPosition == null || userPosition.latitude == null){
+        print("No se pudo obtener tus coordenadas");
+      }else{
+        auxTrip.originLatitude = userPosition.latitude;
+        auxTrip.originLongitude = userPosition.longitude; 
+      }
   }
 
   Future _getNearStations() async {

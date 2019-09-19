@@ -4,6 +4,9 @@ import 'package:bicibici/src/UI/login/ConfirmationScreen.dart';
 import 'package:bicibici/src/UI/login/SingUpScreen.dart';
 import 'package:bicibici/src/UI/tabs/HomeScreen.dart';
 import 'package:bicibici/src/Values/Constants.dart';
+import 'package:bicibici/src/Values/SnackBars.dart';
+import 'package:bicibici/src/Values/TextStyles.dart';
+import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:flutter/material.dart';
 
 import 'package:amazon_cognito_identity_dart/cognito.dart';
@@ -18,10 +21,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _userService = UserService(Constants.userPool);
   User _user = User();
   bool _isAuthenticated = false;
+  bool _passwordVisible = true;
+  
+  var _formMailKey = GlobalKey<FormFieldState>();
+  var _formPasswordKey = GlobalKey<FormFieldState>();
 
   Future<UserService> _getValues() async {
     await _userService.init();
@@ -30,51 +36,34 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   submit(BuildContext context) async {
-    _formKey.currentState.save();
-    String message;
+    if(_formMailKey.currentState.value.toString().isEmpty || _formPasswordKey.currentState.value.toString().isEmpty){
+      SnackBars.showOrangeMessage(context, "Debe completar todos los campos");
+    }else{
+      _user.email = _formMailKey.currentState.value.toString();
+      _user.password = _formPasswordKey.currentState.value.toString();
     try {
       _user = await _userService.login(_user.email, _user.password);
-      message = 'User sucessfully logged in!';
       if (!_user.confirmed) {
-        message = 'Please confirm user account';
+        Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
+      }else{
+        Navigator.push(context,MaterialPageRoute(builder: (context) => HomeScreen()));
       }
     } on CognitoClientException catch (e) {
       if (e.code == 'InvalidParameterException' ||
           e.code == 'NotAuthorizedException' ||
           e.code == 'UserNotFoundException' ||
           e.code == 'ResourceNotFoundException') {
-        message = e.message;
+        SnackBars.showOrangeMessage(context, "No se encuentro al usuario en el sistema");
       } else {
-        message = 'An unknown client error occured';
+        //client error
+        SnackBars.showRedMessage(context, "Hubo un error inesperado");
       }
     } catch (e) {
-      message = 'An unknown error occurred';
+      //server side error
+      Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
+      //SnackBars.showRedMessage(context, e.code);
     }
-    final snackBar = SnackBar(
-      content: Text(message),
-      action: SnackBarAction(
-        label: 'OK',
-        onPressed: () async {
-          if (_user.hasAccess) {
-            Navigator.pop(context);
-            if (!_user.confirmed) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),
-              );
-            }else{
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen())
-              );
-            }
-          }
-        },
-      ),
-      duration: Duration(seconds: 30),
-    );
-
-    Scaffold.of(context).showSnackBar(snackBar);
+    }
   }
 
   @override
@@ -83,17 +72,13 @@ class _LoginScreenState extends State<LoginScreen> {
         future: _getValues(),
         builder: (context, AsyncSnapshot<UserService> snapshot) {
           if (snapshot.hasData) {
-            if (_isAuthenticated) {
-              return HomeScreen();
-            }
-            final Size screenSize = MediaQuery.of(context).size;
-            return Scaffold(
+            return _isAuthenticated
+            ?HomeScreen()
+            :Scaffold(
               body: Builder(
                 builder: (BuildContext context) {
                   return Container(
-                    child: Form(
-                      key: _formKey,
-                      child: ListView(
+                    child: ListView(
                         children: <Widget>[
                           Padding(
                             padding: EdgeInsets.all(60),
@@ -114,21 +99,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hintText: 'example@bicibici.com',
                                   labelText: 'Email'),
                               keyboardType: TextInputType.emailAddress,
-                              onSaved: (String email) {
-                                _user.email = email;
-                              },
+                              key: _formMailKey,
                             ),
                           ),
                           ListTile(
                             leading: const Icon(Icons.lock),
                             title: TextFormField(
                               decoration: InputDecoration(
-                                  hintText: 'password',labelText: 'Contraseña'),
+                                hintText: 'password',
+                                labelText: 'Contraseña',
+                                suffixIcon: IconButton(
+                                  icon: Icon(_passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                                  color: Colors.purple[200],
+                                  ),
+                                  onPressed: () {
+                                    setState(() {_passwordVisible = !_passwordVisible;});
+                                    },
+                          ),
+                                ),
                               keyboardType: TextInputType.visiblePassword,
-                              obscureText: true,
-                              onSaved: (String password) {
-                                _user.password = password;
-                              },
+                              key: _formPasswordKey,
+                              obscureText: _passwordVisible,
                             ),
                           ),
                           Padding(
@@ -141,12 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         'Iniciar sesión',
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyles.smallWhiteFatText(),
                                       ),
                                     ),
-                                    onPressed: () {
-                                      submit(context);
-                                    },
+                                    onPressed: () => submit(context),
                                     color: Colors.purple,
                                   ),
                               ],
@@ -162,16 +153,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         '   Regístrate   ',
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyles.smallWhiteFatText(),
                                       ),
                                     ),
-                                    onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SignUpScreen()),
-                  );
-                                    },
+                                    onPressed: () => Navigator.push(context,MaterialPageRoute(builder: (context) => SignUpScreen()),),
                                     color: Colors.purple,
                                   ),
                               ],
@@ -179,14 +164,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                    ),
                   );
                   },
               ),
             );
           }
-          return new Scaffold(
-              appBar: new AppBar(title: new Text('Loading...')));
+          return Scaffold(
+            body: UtilityWidget.containerloadingIndicator(context),
+          );
         });
   }
 }

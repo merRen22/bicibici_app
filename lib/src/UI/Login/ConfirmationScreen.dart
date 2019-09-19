@@ -1,3 +1,4 @@
+import 'package:bicibici/src/Values/SnackBars.dart';
 import 'package:flutter/material.dart';
 import '../../Models/User.dart';
 import '../../Values/Constants.dart';
@@ -13,23 +14,29 @@ class ConfirmationScreen extends StatefulWidget {
   final String email;
 
   @override
-  _ConfirmationScreenState createState() => new _ConfirmationScreenState();
+  _ConfirmationScreenState createState() => _ConfirmationScreenState();
 }
 
 class _ConfirmationScreenState extends State<ConfirmationScreen> {
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String confirmationCode;
-  User _user = new User();
-  final _userService = new UserService(Constants.userPool);
+  User _user = User();
+  final _userService = UserService(Constants.userPool);
+  
+  var _formMailKey = GlobalKey<FormFieldState>();
+  var _formConfirmationKey = GlobalKey<FormFieldState>();
 
   _submit(BuildContext context) async {
-    _formKey.currentState.save();
+    if(_formMailKey.currentState.value.toString().isEmpty  || _formConfirmationKey.currentState.value.toString().isEmpty){
+      SnackBars.showOrangeMessage(context, 'Debe de completar todos los campos');
+    }
     bool accountConfirmed;
     String message;
+    _user.email = _formMailKey.currentState.value.toString();
+    confirmationCode = _formConfirmationKey.currentState.value.toString();
     try {
-      accountConfirmed =
-          await _userService.confirmAccount(_user.email, confirmationCode);
-      message = 'Account successfully confirmed!';
+      accountConfirmed = await _userService.confirmAccount(_user.email, confirmationCode);
+      message = 'Cuenta confirmada';
     } on CognitoClientException catch (e) {
       if (e.code == 'InvalidParameterException' ||
           e.code == 'CodeMismatchException' ||
@@ -38,128 +45,125 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
           e.code == 'ResourceNotFoundException') {
         message = e.message;
       } else {
-        message = 'Unknown client error occurred';
+        message = 'Hubo un error inesperado';
       }
     } catch (e) {
-      message = 'Unknown error occurred';
+      message = 'Hubo un error inesperado';
     }
 
-    final snackBar = new SnackBar(
-      content: new Text(message),
-      action: new SnackBarAction(
+    final snackBar = SnackBar(
+      content: Text(message, style: TextStyles.smallWhiteFatText(),),
+      action: SnackBarAction(
         label: 'OK',
+        textColor: Colors.white,
         onPressed: () {
           if (accountConfirmed) {
             Navigator.pop(context);
             Navigator.push(
               context,
-              new MaterialPageRoute(
+              MaterialPageRoute(
                   builder: (context) => new LoginScreen(email: _user.email)),
             );
           }
         },
       ),
-      duration: new Duration(seconds: 30),
+      backgroundColor: accountConfirmed?Colors.green:Colors.orange,
+      duration: Duration(seconds: 30),
     );
 
     Scaffold.of(context).showSnackBar(snackBar);
   }
 
   _resendConfirmation(BuildContext context) async {
-    _formKey.currentState.save();
-    String message;
+    if(_formMailKey.currentState.value.toString().isEmpty){
+      SnackBars.showOrangeMessage(context, 'Debe de poner un correo para enviar el codigo');
+    }else{
+
     try {
-      await _userService.resendConfirmationCode(_user.email);
-      message = 'Confirmation code sent to ${_user.email}!';
+      await _userService.resendConfirmationCode(_formMailKey.currentState.value);
+      SnackBars.showOrangeMessage(context, 'Codigo de confirmación enviado a ${_formMailKey.currentState.value.toString()}');
     } on CognitoClientException catch (e) {
       if (e.code == 'LimitExceededException' ||
           e.code == 'InvalidParameterException' ||
           e.code == 'ResourceNotFoundException') {
-        message = e.message;
+          SnackBars.showRedMessage(context, "Hubo un error inesperado");
       } else {
-        message = 'Unknown client error occurred';
+          SnackBars.showRedMessage(context, "Hubo un error inesperado");
       }
     } catch (e) {
-      message = 'Unknown error occurred';
+          SnackBars.showRedMessage(context, "Hubo un error inesperado");
     }
-
-    final snackBar = new SnackBar(
-      content: new Text(message),
-      action: new SnackBarAction(
-        label: 'OK',
-        onPressed: () {},
-      ),
-      duration: new Duration(seconds: 30),
-    );
-
-    Scaffold.of(context).showSnackBar(snackBar);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final Size screenSize = MediaQuery.of(context).size;
-    return new Scaffold(
-      appBar: new AppBar(
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.purple),
-        title: new Text('bicibici', style: TextStyles.mediumPurpleFatText()),
+        title: Text('bicibici', style: TextStyles.mediumPurpleFatText()),
       ),
       body: Builder(
           builder: (BuildContext context) => new Container(
-                child: new Form(
+                child: Form(
                   key: _formKey,
-                  child: new ListView(
+                  child: ListView(
                     children: <Widget>[
-                      new ListTile(
-                        leading: const Icon(Icons.email),
-                        title: new TextFormField(
-                          initialValue: widget.email,
-                          decoration: new InputDecoration(
-                              hintText: 'example@bicibici.my',
-                              labelText: 'Email'),
-                          keyboardType: TextInputType.emailAddress,
-                          onSaved: (String email) {
-                            _user.email = email;
-                          },
-                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Container(child: Text("Te enviamos un codigo de verificación a tu cuenta de correo",style: TextStyles.smallBlackFatText(),textAlign: TextAlign.center,)),
                       ),
-                      new ListTile(
-                        leading: const Icon(Icons.lock),
-                        title: new TextFormField(
-                          decoration: new InputDecoration(
-                              labelText: 'Código de confirmación'),
-                          onSaved: (String code) {
-                            confirmationCode = code;
-                          },
-                        ),
-                      ),
-                      new Container(
-                        padding: new EdgeInsets.all(20.0),
-                        width: screenSize.width,
-                        child: new RaisedButton(
-                          shape: StadiumBorder(),
-                          color: Colors.purple,
-                          child: new Text(
-                            'Confirmar',
-                            style: new TextStyle(color: Colors.white),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListTile(
+                          leading: const Icon(Icons.email),
+                          title: TextFormField(
+                            initialValue: widget.email,
+                            decoration: InputDecoration(
+                                hintText: 'example@bicibici.my',
+                                labelText: 'Email'),
+                            keyboardType: TextInputType.emailAddress,
+                            key: _formMailKey,
                           ),
-                          onPressed: () {
-                            _submit(context);
-                          },
-                        ),
-                        margin: new EdgeInsets.only(
-                          top: 10.0,
                         ),
                       ),
-                      new Center(
-                        child: new InkWell(
-                          child: new Text(
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ListTile(
+                          leading: const Icon(Icons.lock),
+                          title: TextFormField(
+                            decoration: InputDecoration(
+                                labelText: 'Código de confirmación'),
+                                key: _formConfirmationKey,
+                          ),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: RaisedButton(
+                                shape: StadiumBorder(),
+                                color: Colors.purple,
+                                child: Text(
+                                  'Confirmar',
+                                  style: TextStyles.smallWhiteFatText()
+                                ),
+                                onPressed: ()=>_submit(context),
+                              ),
+                          ),
+                        ],
+                      ),
+                      Center(
+                        child: InkWell(
+                          child: Text(
                             'Enviar nuevo código',
-                            style: new TextStyle(color: Colors.purple),
+                            style: TextStyles.smallPurpleFatText(),
                           ),
-                          onTap: () {
-                            _resendConfirmation(context);
-                          },
+                          onTap: () => _resendConfirmation(context),
                         ),
                       ),
                     ],

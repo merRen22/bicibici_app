@@ -37,30 +37,57 @@ class _DialogSeleccionarPagoState extends State<DialogSeleccionarPago> {
       elevation: 2,
       child: Container(
           decoration: BoxDecoration(color: Colors.white),
-          child: Column(
-            children: <Widget>[Center(
-                    child: Text(
-                      plan.cost.toString() + " PEN",
-                  style: TextStyle(
-                      fontFamily: "Roboto",
-                      fontSize: 15,
-                      color: Colors.grey,
-                      decoration: TextDecoration.none,
-                      fontWeight: FontWeight.w700),
-                ),
-              ),Center(
-                    child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.0),
-                      color: Colors.white),
-                  padding: EdgeInsets.all(5),
-                  child: Text(
-                    plan.duration.toString() + " dias",
-                    style: TextStyles.mediumBlackFatText(),
-                    maxLines: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: <Widget>[
+                
+                    Center(
+                          child: Container(
+                            width: 150,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15.0),
+                            color: Colors.white),
+                        padding: EdgeInsets.all(5),
+                        child: Text(
+                          plan.duration.toString() + " dias",
+                          style: TextStyles.largeBlackFatText(),
+                          maxLines: 1,
+                        ),
+                      )),
+                Expanded(child:
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          
+                  Expanded(child:Text(
+                      plan.description.toString(),
+                      style: TextStyles.mediumPurpleFatText(),
+                    )),
+                        ],
+                      ),
+                      
+                      Row(
+                        children: <Widget>[
+                        
+                  Text(
+                      plan.cost.toString(),
+                      style: TextStyles.smallBlackFatText(),
+                    ),  
+                  Text(
+                      " soles",
+                      style: TextStyles.smallBlackFatText(),
+                    ),
+                        ],
+                      ),
+                    ],
                   ),
                 )),
-            ],
+              ],
+            ),
           )),
     );
   }

@@ -9,7 +9,7 @@ class Plan{
    Plan plan = Plan();
    plan.uuidPlan = parsedJson['uuidPlan'];
    plan.name = parsedJson['name'];
-   plan.description = parsedJson['description'];
+   plan.description = parsedJson['name'];
    plan.cost = parsedJson['cost'];
    plan.duration = parsedJson['duration'];
    return plan;
