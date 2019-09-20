@@ -3,6 +3,7 @@ import 'package:bicibici/src/Models/Trip.dart';
 import 'package:bicibici/src/Models/User.dart';
 import 'package:bicibici/src/Presenter/mainTabPresenter.dart';
 import 'package:bicibici/src/UI/tabs/mainTab/Pagos/DialogSeleccionarPago.dart';
+import 'package:bicibici/src/UI/tabs/mainTab/reportScreen.dart';
 import 'package:bicibici/src/Values/TextStyles.dart';
 import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:bicibici/src/utils/MapCustomDialogs.dart';
@@ -505,7 +506,23 @@ class _MapScreenState extends State<MapScreen>{
                     Positioned(
                         bottom: 20,
                         width: MediaQuery.of(context).size.width,
-                        child: getUserState())
+                        child: getUserState()),
+                    if(userState> 0)
+                    Positioned(
+                        top: 50,
+                        right: 20,
+                        child: FloatingActionButton(
+                          key: UniqueKey(),
+                          heroTag: UniqueKey(),
+                          onPressed: (){
+                            Navigator.push(context,MaterialPageRoute(
+                              builder: (context) => ReportScreen()),
+                              ).then((response){});
+                          },
+                          child: Icon(Icons.error_outline,color: Colors.white,),
+                          backgroundColor: Colors.red,
+
+                        ))
                   ],
                 ))));
   }
@@ -514,84 +531,4 @@ class _MapScreenState extends State<MapScreen>{
     return 171.7*distance;
   }
 
-  Future<void> _goToTheLake() async {
-    /*
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-
-
-
-
-              floatingActionButton: FloatingActionButton.extended(
-                onPressed: _goToTheLake,
-                label: Text('To the lake!'),
-                icon: Icon(Icons.directions_boat),
-
-    */
-  }
 }
-
-
-/*
-
-  static final CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
-  );
-
-  static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
-
-
-  //Stationsservice _counterService;
-  //AwsSigV4Client _awsSigV4Client;
-  //User _user = new User();
-  //Counter _counter = new Counter(0);
-  //bool _isAuthenticated = false;
-
-  Future _getValues() async {
-    try {
-      position = await Geolocator()
-          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-      await _userService.init();
-      _isAuthenticated = await _userService.checkAuthenticated();
-      if (_isAuthenticated) {
-        // get user attributes from cognito
-        _user = await _userService.getCurrentUser();
-
-        // get session credentials
-        final credentials = await _userService.getCredentials();
-        _awsSigV4Client = new AwsSigV4Client(
-            credentials.accessKeyId, credentials.secretAccessKey, Constants.stationsEndPoint,
-            region: Constants.region, sessionToken: credentials.sessionToken);
-
-        // get previous count
-        _counterService = Stationsservice(_awsSigV4Client);
-        _counter = await _counterService.getStations();
-      }
-      return _userService;
-    } on CognitoClientException catch (e) {
-      if (e.code == 'NotAuthorizedException') {
-        await _userService.signOut();
-        Navigator.pop(context);
-      }
-    }
-  }
-
-    _markers.add(Marker(
-      // This marker id can be anything that uniquely identifies each marker.
-      markerId: MarkerId("uniqueKey"),
-      position: LatLng(45.521563, -122.677433),
-      infoWindow: InfoWindow(
-        title: 'Estacionamiento',
-        snippet: '3 libres\n4 ocupados',
-      ),
-      onTap: () {},
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-    ));
-
- */
