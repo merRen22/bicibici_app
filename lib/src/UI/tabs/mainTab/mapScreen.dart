@@ -4,6 +4,7 @@ import 'package:bicibici/src/Models/User.dart';
 import 'package:bicibici/src/Presenter/mainTabPresenter.dart';
 import 'package:bicibici/src/UI/tabs/mainTab/Pagos/DialogSeleccionarPago.dart';
 import 'package:bicibici/src/UI/tabs/mainTab/reportScreen.dart';
+import 'package:bicibici/src/Values/SnackBars.dart';
 import 'package:bicibici/src/Values/TextStyles.dart';
 import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:bicibici/src/utils/MapCustomDialogs.dart';
@@ -293,8 +294,7 @@ class _MapScreenState extends State<MapScreen>{
     userAux = await presenter.getCurrentUser();
     auxTrip.uuidUser = userAux.email;
     await presenter.obtenerDataUsuario(userAux.email).then((response){
-      userState = 3;
-      //userState = response.activo == 0?0:1;
+      userState = response.activo == 0?0:1;
       userAux.activo = response.activo;
     });
       setState(() {
@@ -311,6 +311,18 @@ class _MapScreenState extends State<MapScreen>{
       }else{
         auxTrip.originLatitude = userPosition.latitude;
         auxTrip.originLongitude = userPosition.longitude; 
+      }
+  }
+
+  Future _getUserEndPosition() async {
+      userPosition = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      if(userPosition == null || userPosition.latitude == null){
+        setState(() {
+         _locationError = true; 
+        });
+      }else{
+        auxTrip.destinationLatitude = userPosition.latitude;
+        auxTrip.destinationLongitude = userPosition.longitude; 
       }
   }
 
@@ -442,14 +454,19 @@ class _MapScreenState extends State<MapScreen>{
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         GestureDetector(
-          onTap: (){
-            presenter.bloquearBicicleta(auxTrip);
-            setState(() {
+          onTap: () async {
+            MapCustomDialogs.progressDialog(context: context,message: "Cerramos tu viaje");
+            await _getUserEndPosition();
+            bool response  = await presenter.bloquearBicicleta(auxTrip);
+            Navigator.of(context).pop();
+            response
+            ?SnackBars.showRedMessage(context, "no pudimos daer por finalizado tu viaje, intentalo en otro momento")
+            :setState(() {
              userState = 1; 
             });
           },
-                  child: Container(
-              height: 50.0,
+          child: Container(
+            height: 50.0,
               decoration: BoxDecoration(
                 color: Colors.green,
                 borderRadius: BorderRadius.circular(30.0),
