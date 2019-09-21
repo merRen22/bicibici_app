@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bicibici/src/Models/Plan.dart';
+import 'package:bicibici/src/Models/Report.dart';
 import 'package:bicibici/src/Models/Station.dart';
 import 'package:bicibici/src/Models/Trip.dart';
 import 'package:bicibici/src/Models/User.dart';
@@ -54,6 +55,10 @@ class MainTabPresenter {
     return await _paymentService.registrarPago(plan,uuidUser);
   }
   
+  Future<bool> reportBike(Report report) async {
+    return await _tripsService.reportBike(report);
+  }
+
 }
 
 final presenter = MainTabPresenter();

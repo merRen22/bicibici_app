@@ -8,6 +8,9 @@ class Configuration{
 
   static const obtenerDataUsuario = 'https://zp28mafr53.execute-api.us-east-1.amazonaws.com/dev/usuario';
   static const obtenerPlanesDisponibles = 'https://zp28mafr53.execute-api.us-east-1.amazonaws.com/dev/planes';
+
+  static const reportarBicicleta = 'https://zp28mafr53.execute-api.us-east-1.amazonaws.com/dev/reportar_bicicleta';
+
   
   static const headerRequest = {"content-type":"application/json"};
 

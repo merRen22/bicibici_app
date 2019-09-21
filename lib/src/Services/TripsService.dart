@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bicibici/src/Models/Report.dart';
 import 'package:bicibici/src/Models/Trip.dart';
 import 'package:http/http.dart' as Client;
 import 'package:bicibici/src/Services/Configuration.dart';
@@ -70,6 +71,25 @@ class TripsService {
     }
     return result;
   }
+  
+  Future<bool> reportBike(Report report)async {
+    bool result = false;
+    var dataJson = json.encode(report.toJson());
+
+    try {
+      await Client.post(Configuration.reportarBicicleta,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
+        if (response.statusCode == 200) {
+          Map<String, dynamic> parsedJson = json.decode(response.body);
+          result = true;          
+        }
+      });
+    } catch (error) {
+      result = false;          
+    }
+    return result;
+  }
+
+  
 
 }
 

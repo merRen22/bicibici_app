@@ -293,11 +293,8 @@ class _MapScreenState extends State<MapScreen>{
     auxTrip.uuidUser = userAux.email;
     await presenter.obtenerDataUsuario(userAux.email).then((response){
       userState = response.activo == 0?0:1;
-
       userAux.activo = response.activo;
     });
-
-    
       setState(() {
         _isDataLoading = false;
       });
@@ -406,7 +403,7 @@ class _MapScreenState extends State<MapScreen>{
                                   Center(
                                     child: Padding(
                                       padding: const EdgeInsets.fromLTRB(20,8,20,8),
-                                      child: Text("Escanear QR\nBici",
+                                      child: Text("Escanear QR Bici",
                                             style: TextStyles.smallWhiteFatText(),
                                             textAlign: TextAlign.center,
                                             ),
@@ -516,7 +513,11 @@ class _MapScreenState extends State<MapScreen>{
                           heroTag: UniqueKey(),
                           onPressed: (){
                             Navigator.push(context,MaterialPageRoute(
-                              builder: (context) => ReportScreen()),
+                              builder: (context) => ReportScreen(
+                                userEmail: userAux.email,
+                                latitude: userPosition.latitude,
+                                longitude: userPosition.longitude
+                              )),
                               ).then((response){});
                           },
                           child: Icon(Icons.error_outline,color: Colors.white,),

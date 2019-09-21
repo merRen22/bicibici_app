@@ -1,11 +1,10 @@
-import 'package:bicibici/src/Models/Payment.dart';
-import 'package:bicibici/src/Models/User.dart';
-import 'package:bicibici/src/Presenter/myProfilePresenter.dart';
-import 'package:bicibici/src/UI/login/LoginScreen.dart';
+import 'package:bicibici/src/Models/Report.dart';
+import 'package:bicibici/src/Presenter/mainTabPresenter.dart';
 import 'package:bicibici/src/Values/SnackBars.dart';
 import 'package:bicibici/src/Values/TextStyles.dart';
 import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class ReportScreen extends StatefulWidget {
   final String userEmail;
@@ -20,12 +19,38 @@ class ReportScreen extends StatefulWidget {
 
 class ReportScreenState extends State<ReportScreen> {
   bool _isDataLoading = false;
+  Report report = Report();
 
   var _formDescripcionKey = GlobalKey<FormFieldState>();
   
   @override
   void initState() {
     super.initState();
+  }
+  
+  startBarcodeScanStream() async {
+    String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancelar", true);
+    if(barcodeScanRes != ""){
+      report.uuidBike = barcodeScanRes;
+    }
+  }
+
+  Future _reportBike(BuildContext contextSca) async {
+    report.description = _formDescripcionKey.currentState.value.toString();
+    report.uuidUser = widget.userEmail;
+    report.longitude = widget.longitude;
+    report.latitude = widget.latitude;
+    setState(() {
+     _isDataLoading = true; 
+    });
+    await presenter.reportBike(report).then((response){
+      setState(() {
+      _isDataLoading = false; 
+      });
+      response
+      ?SnackBars.showGreenMessage(contextSca, "Gracias por tu reporte")
+      :SnackBars.showRedMessage(contextSca, "Hubo un problema inesperado");
+    });
   }
 
   Widget cardFields(){
@@ -61,26 +86,26 @@ class ReportScreenState extends State<ReportScreen> {
                                               style: TextStyle(color: Colors.white),
                                             ),
                                           ),
-                                          onPressed: () {},
+                                          onPressed: () => startBarcodeScanStream(),
                                           color: Colors.purple,
                                         )])),
           ]));
   }
 
-  Widget cardInteraction(){
+  Widget cardInteraction(BuildContext contextSca){
     return  Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
-        color: Colors.white,
-        margin: EdgeInsets.all(12),
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        semanticContainer: true,
-        elevation: 4,
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text("Ganararás 3 puntos por este reporte 😊",style: TextStyles.smallPurpleFatText()),
-            ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
+      color: Colors.white,
+      margin: EdgeInsets.all(12),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      semanticContainer: true,
+      elevation: 4,
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text("Ganararás 3 puntos por este reporte 😊",style: TextStyles.smallPurpleFatText())
+          ),
                               Padding(
                                 padding: const EdgeInsets.all(20.0),
                                 child: Row(
@@ -95,7 +120,7 @@ class ReportScreenState extends State<ReportScreen> {
                                               style: TextStyle(color: Colors.white),
                                             ),
                                           ),
-                                          onPressed: () {},
+                                          onPressed: () => _reportBike(contextSca),
                                           color: Colors.purple,
                                         )])),
             
@@ -107,7 +132,7 @@ class ReportScreenState extends State<ReportScreen> {
     return Scaffold(
         resizeToAvoidBottomInset: true,
         body: Builder(
-        builder: (context) => NestedScrollView(
+        builder: (contextSca) => NestedScrollView(
           headerSliverBuilder:(BuildContext context, bool innerBoxIsScrolled) {
                   return <Widget>[
                     SliverAppBar(
@@ -133,7 +158,7 @@ class ReportScreenState extends State<ReportScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             cardFields(),
-                            cardInteraction(),
+                            cardInteraction(contextSca),
                             ],
                             ),
                     ),
