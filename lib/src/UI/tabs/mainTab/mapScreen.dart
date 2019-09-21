@@ -30,6 +30,7 @@ class _MapScreenState extends State<MapScreen>{
   ///3 -> user needs to 
   int userState = 0;
   bool _isDataLoading = true;
+  bool _locationError = false;
   User userAux;
   Trip auxTrip;
   Position userPosition;
@@ -292,7 +293,8 @@ class _MapScreenState extends State<MapScreen>{
     userAux = await presenter.getCurrentUser();
     auxTrip.uuidUser = userAux.email;
     await presenter.obtenerDataUsuario(userAux.email).then((response){
-      userState = response.activo == 0?0:1;
+      userState = 3;
+      //userState = response.activo == 0?0:1;
       userAux.activo = response.activo;
     });
       setState(() {
@@ -303,7 +305,9 @@ class _MapScreenState extends State<MapScreen>{
   Future _getUserPosition() async {
       userPosition = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       if(userPosition == null || userPosition.latitude == null){
-        print("No se pudo obtener tus coordenadas");
+        setState(() {
+         _locationError = true; 
+        });
       }else{
         auxTrip.originLatitude = userPosition.latitude;
         auxTrip.originLongitude = userPosition.longitude; 
@@ -381,37 +385,32 @@ class _MapScreenState extends State<MapScreen>{
                                               )),
                                       ),
                                 ),
-                              ),
-                            ))
-                          ],
+                              )))
+                          ]
                         );
   }
 
   Widget userState1(){
     return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            GestureDetector(
-                              onTap: ()=> startBarcodeScanStream(),
-                            child: Container(
-                              height: 50.0,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                              child: 
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(20,8,20,8),
-                                      child: Text("Escanear QR Bici",
-                                            style: TextStyles.smallWhiteFatText(),
-                                            textAlign: TextAlign.center,
-                                            ),
-                                    ),
-                              ),
-                            ))
-                          ],
-                        );
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[                            
+        GestureDetector(
+          onTap: ()=> startBarcodeScanStream(),
+          child: Container(
+            height: 50.0,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20,8,20,8),
+                child: Text("Escanear QR Bici",
+                style: TextStyles.smallWhiteFatText(),
+                textAlign: TextAlign.center
+                ),
+              )
+            )))]);
   }
 
   Widget userState2(){
@@ -427,7 +426,7 @@ class _MapScreenState extends State<MapScreen>{
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20,8,20,8),
-                child: Text("Selecciona una\nestación",
+                child: Text("Selecciona una estación",
                 style: TextStyles.smallWhiteFatText(),
                 textAlign: TextAlign.center,
                 ),
@@ -461,15 +460,17 @@ class _MapScreenState extends State<MapScreen>{
                   child: Text("Finaliza viaje",
                   style: TextStyles.smallWhiteFatText(),
                   textAlign: TextAlign.center,
-                  ),
-                  ),
-                  ),
-                              ),
-        )
-                          ],
-                        );
+                  )))))]);
   }
-
+  
+  Widget containerPostionError(BuildContext context) {
+    return Container(
+            height: (MediaQuery.of(context).size).height,
+            child: Center(
+              child: Text("No pudimos obtener tu posición activa tu GPS o sal al aire libre",style: TextStyles.smallBlackFatText(),),
+            ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +482,9 @@ class _MapScreenState extends State<MapScreen>{
                     (BuildContext context, bool innerBoxIsScrolled) {
                   return <Widget>[];
                 },
-                body: _isDataLoading
+                body: _locationError
+                ?containerPostionError(context)
+                :_isDataLoading
                 ?UtilityWidget.containerloadingIndicator(context)
                 :Stack(
                   children: <Widget>[

@@ -19,6 +19,7 @@ class ReportScreen extends StatefulWidget {
 
 class ReportScreenState extends State<ReportScreen> {
   bool _isDataLoading = false;
+  bool _codeScanned = false;
   Report report = Report();
 
   var _formDescripcionKey = GlobalKey<FormFieldState>();
@@ -31,64 +32,84 @@ class ReportScreenState extends State<ReportScreen> {
   startBarcodeScanStream() async {
     String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode("#ff6666", "Cancelar", true);
     if(barcodeScanRes != ""){
+      setState(() {
+       _codeScanned = true; 
+      });
       report.uuidBike = barcodeScanRes;
     }
   }
 
   Future _reportBike(BuildContext contextSca) async {
-    report.description = _formDescripcionKey.currentState.value.toString();
-    report.uuidUser = widget.userEmail;
-    report.longitude = widget.longitude;
-    report.latitude = widget.latitude;
-    setState(() {
-     _isDataLoading = true; 
-    });
-    await presenter.reportBike(report).then((response){
-      setState(() {
-      _isDataLoading = false; 
-      });
-      response
-      ?SnackBars.showGreenMessage(contextSca, "Gracias por tu reporte")
-      :SnackBars.showRedMessage(contextSca, "Hubo un problema inesperado");
-    });
+    if(
+      _formDescripcionKey.currentState.value.toString() == ""
+      ){
+        SnackBars.showOrangeMessage(contextSca, "Debes incluir una descripción en tu reporte");
+      }else{
+        report.uuidBike??="";
+        report.description = _formDescripcionKey.currentState.value.toString();
+        report.uuidUser = widget.userEmail;
+        report.longitude = widget.longitude;
+        report.latitude = widget.latitude;
+        setState(() {
+        _isDataLoading = true; 
+        });
+        await presenter.reportBike(report).then((response){
+          setState(() {
+          _isDataLoading = false; 
+          });
+          response
+          ?SnackBars.showGreenMessage(contextSca, "Gracias por tu reporte")
+          :SnackBars.showRedMessage(contextSca, "Hubo un problema inesperado");
+        });
+      }
   }
 
   Widget cardFields(){
     return  Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
-        color: Colors.white,
-        margin: EdgeInsets.all(12),
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        semanticContainer: true,
-        elevation: 4,
-        child: Column(
-          children: <Widget>[
-                            ListTile(
-                                title: TextFormField(
-                                  decoration: InputDecoration(
-                                      hintText: 'Descripción',
-                                      labelText: 'Descripción'),
-                                  keyboardType: TextInputType.text,
-                                  key: _formDescripcionKey,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    RaisedButton(
-                                          shape: StadiumBorder(),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Escanear QR',
-                                              style: TextStyle(color: Colors.white),
-                                            ),
-                                          ),
-                                          onPressed: () => startBarcodeScanStream(),
-                                          color: Colors.purple,
-                                        )])),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
+      color: Colors.white,
+      margin: EdgeInsets.all(12),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      semanticContainer: true,
+      elevation: 4,
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextFormField(
+              decoration: InputDecoration(
+                hintText: 'Descripción',
+                labelText: 'Descripción'),
+              keyboardType: TextInputType.text,
+              key: _formDescripcionKey
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                _codeScanned
+                ?RaisedButton(
+                  shape: StadiumBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('codigo listo',
+                    style: TextStyle(color: Colors.white))
+                    ),
+                    onPressed: () => startBarcodeScanStream(),
+                    color: Colors.purple
+                )
+                :RaisedButton(
+                  shape: StadiumBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('escanear QR',
+                    style: TextStyle(color: Colors.white))
+                    ),
+                    onPressed: () => startBarcodeScanStream(),
+                    color: Colors.purple
+                )])),
           ]));
   }
 
@@ -104,26 +125,23 @@ class ReportScreenState extends State<ReportScreen> {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text("Ganararás 3 puntos por este reporte 😊",style: TextStyles.smallPurpleFatText())
+            child: Text("Ganararás 5 puntos por este reporte 😊",style: TextStyles.smallPurpleFatText())
           ),
-                              Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    RaisedButton(
-                                          shape: StadiumBorder(),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'enviar',
-                                              style: TextStyle(color: Colors.white),
-                                            ),
-                                          ),
-                                          onPressed: () => _reportBike(contextSca),
-                                          color: Colors.purple,
-                                        )])),
-            
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton(
+                  shape: StadiumBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'enviar',
+                      style: TextStyle(color: Colors.white)
+                    )),
+                  onPressed: () => _reportBike(contextSca),
+                  color: Colors.purple)]))
           ]));
   }
 

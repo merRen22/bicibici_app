@@ -34,7 +34,9 @@ class TripsService {
       "uuidBike":trip.uuidBike,
       "uuidStation":trip.uuidStation,
       "originLatitude":trip.originLatitude,
-      "originLongitude":trip.originLongitude
+      "originLongitude":trip.originLongitude,
+      "destinationLatitude":trip.destinationLatitude,
+      "destinationLongitude":trip.destinationLongitude
     });
 
     try {
@@ -55,15 +57,19 @@ class TripsService {
     var dataJson = json.encode({
       "uuidUser":trip.uuidUser,
       "uuidBike":trip.uuidBike,
-      "destinationLatitude":trip.destinationLatitude,
-      "destinationLongitude":trip.destinationLongitude
+      "latitude":trip.destinationLatitude,
+      "longitude":trip.destinationLongitude
     });
 
     try {
       await Client.post(Configuration.bloquearBicicleta,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
-          result = true;          
+          if(parsedJson['message'] == "No se encuentra en el estacionamiento"){
+            result = false;          
+          }else{
+            result = true;          
+          }
         }
       });
     } catch (error) {
