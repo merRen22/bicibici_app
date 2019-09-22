@@ -15,12 +15,13 @@ class MyProfileScreen extends StatefulWidget {
 
 class MyProfileScreenState extends State<MyProfileScreen> {
   bool _isDataLoading = true;
-  bool _isMembershipLoading = true;
+  bool _isMembershipLoading = false;
   bool _oldPasswordVisible = true;
   bool _newPasswordVisible = true;
 
   User auxUser = User();
   Payment payment = Payment();
+  String emergencia;
 
   var _formNombreKey = GlobalKey<FormFieldState>();
   var _formTelefonoKey = GlobalKey<FormFieldState>();
@@ -28,6 +29,8 @@ class MyProfileScreenState extends State<MyProfileScreen> {
 
   var _formOldPasswordKey = GlobalKey<FormFieldState>();
   var _formNewPasswordKey = GlobalKey<FormFieldState>();
+
+  var _formEmergencyKey = GlobalKey<FormFieldState>();
   
   @override
   void initState() {
@@ -38,24 +41,36 @@ class MyProfileScreenState extends State<MyProfileScreen> {
   Future _getUserData() async {
     await presenter.getCurrentUser().then((response){
       auxUser = response;
-      setState(() {
-        _isDataLoading = false;
-      });
       _obtenerMembresiaUsuario();
     });
+  }
+
+  Future _registerEmergencyContact() async {
+    if(_formEmergencyKey.currentState.value.toString().isEmpty){
+      SnackBars.showOrangeMessage(context,"Debe completar el campo de contacto de emergencia");
+    }else{
+      setState(() {_isDataLoading = true;});
+      auxUser.contactoEmergencia = _formEmergencyKey.currentState.value.toString();
+      await presenter.registerEmergencyContact(auxUser).then((response){
+        setState(() {_isDataLoading = false;});
+        response
+        ?SnackBars.showGreenMessage(context,"Se registro con exito el cambio")
+        :SnackBars.showOrangeMessage(context,"No se pudo registrar un contacto de emeregencia");
+      });
+    }
   }
   
   Future _obtenerMembresiaUsuario() async {
     await presenter.obtenerMembresiaUsuario(auxUser.email).then((response){
       setState(() {
-        payment = response;
-        _isMembershipLoading = false;
+        emergencia = response.contactoEmergencia;
+        payment = response.pago;
+        _isDataLoading = false;
       });
 
     });
   }
   
-
   Future _resetPassword(BuildContext scaContext) async {
     if(_formOldPasswordKey.currentState.value.toString().isEmpty || _formNewPasswordKey.currentState.value.toString().isEmpty){
       SnackBars.showOrangeMessage(scaContext,"Debe introducir tu antigua y nueva contraseña");
@@ -110,33 +125,30 @@ class MyProfileScreenState extends State<MyProfileScreen> {
     });
   }
 
-  
   Widget cardMembership(){
     return  Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
-        color: Colors.green[400],
-        margin: EdgeInsets.all(12),
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        semanticContainer: true,
-        elevation: 16,
-        child: Container(
-          height: 180,
-          child: Stack(
-            children: <Widget>[
-              Column(
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                    color: Colors.black54,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(40,8,8,4),
-                      child: Text("Membresia", textAlign: TextAlign.start,style: TextStyles.mediumWhiteFatText(),),
-                    ),
-                  )),
-                ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
+      color: Colors.green[400],
+      margin: EdgeInsets.all(12),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      semanticContainer: true,
+      elevation: 16,
+      child: Container(
+        height: 180,
+        child: Stack(
+          children: <Widget>[
+            Column(
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        color: Colors.black54,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(40,8,8,4),
+                          child: Text("Membresia", textAlign: TextAlign.start,style: TextStyles.mediumWhiteFatText(),),
+                        )))]
               ),
               _isMembershipLoading
               ?Column(
@@ -180,8 +192,8 @@ class MyProfileScreenState extends State<MyProfileScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Text("Duracion ${(payment.duration)} días", textAlign: TextAlign.start,style: TextStyles.smallWhiteFatText()),
                     )  
-                  ],
-                ),
+                  ]
+                )
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -198,13 +210,8 @@ class MyProfileScreenState extends State<MyProfileScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(40,8,8,8),
                     child: Text("Fin ${(payment.endDate)}", textAlign: TextAlign.start,style: TextStyles.smallWhiteFatText()),
-                  ),
-                ],
-              ) 
-                ],
-              )
-            
-              ],
+                  )]) ]
+            )],
           ),
           if(payment != null && payment.startDate != null && payment.startDate != "")Positioned(
             right: 20,
@@ -225,24 +232,23 @@ class MyProfileScreenState extends State<MyProfileScreen> {
         elevation: 8,
         child: Column(
           children: <Widget>[
-                            ListTile(
-                                leading: const Icon(Icons.person),
-                                title: TextFormField(
-                                  decoration: InputDecoration(
-                                      hintText: 'nombre',
-                                      labelText: 'Nombre'),
-                                      initialValue: auxUser.name,
-                                  keyboardType: TextInputType.text,
-                                  key: _formNombreKey,
-                                ),
-                              ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: TextFormField(
+                decoration: InputDecoration(
+                    hintText: 'nombre',
+                    labelText: 'Nombre'),
+                    initialValue: auxUser.name,
+                keyboardType: TextInputType.text,
+                key: _formNombreKey,
+              )),
                               ListTile(
                                 leading: const Icon(Icons.home),
                                 title: TextFormField(
                                   decoration: InputDecoration(
                                       hintText: 'dirección',
                                       labelText: 'dirección'),
-                                      initialValue: auxUser.address,
+                                      initialValue: String.fromCharCodes(Runes(auxUser.address)),
                                   keyboardType: TextInputType.text,
                                   key: _formDireccionKey,
                                 ),
@@ -275,6 +281,47 @@ class MyProfileScreenState extends State<MyProfileScreen> {
                                           onPressed: () => _updateUserData(context),
                                           color: Colors.purple,
                                         )])),
+          ]));
+  }
+
+  Widget cardEmergencyContact(){
+    return  Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0),),
+        color: Colors.white,
+        margin: EdgeInsets.all(12),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        semanticContainer: true,
+        elevation: 8,
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text('Contacto de emergencia',style: TextStyles.mediumPurpleFatText(),textAlign: TextAlign.start,),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'correo de emergencia',
+                  labelText: 'Correo'),
+                  initialValue: emergencia=="none"?"":emergencia,
+                  keyboardType: TextInputType.text,
+                  key: _formEmergencyKey
+              )),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  RaisedButton(
+                        shape: StadiumBorder(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text('Guardar',style: TextStyle(color: Colors.white))
+                        ),
+                        onPressed: () => _registerEmergencyContact(),
+                        color: Colors.purple,
+                      )])),
           ]));
   }
 
@@ -438,26 +485,27 @@ class MyProfileScreenState extends State<MyProfileScreen> {
                       automaticallyImplyLeading: false,
                       centerTitle: true,
                       floating: true,
-                                        pinned: false,
-                                        snap: false,
-                                        primary: true,
-                                        elevation: 8,
-                                        backgroundColor: Colors.white,
-                                        iconTheme: IconThemeData(color: Colors.white),
-                                        title: Text("Mi perfil", style: TextStyles.mediumPurpleFatText()),
-                                        )];
-                                        },
-                body: _isDataLoading
-                ?UtilityWidget.containerloadingIndicator(context)
-                :ListView(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
+                      pinned: false,
+                      snap: false,
+                      primary: true,
+                      elevation: 8,
+                      backgroundColor: Colors.white,
+                      iconTheme: IconThemeData(color: Colors.white),
+                      title: Text("Mi perfil", style: TextStyles.mediumPurpleFatText())
+                    )];
+          },
+          body: _isDataLoading
+            ?UtilityWidget.containerloadingIndicator(context)
+            :ListView(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             cardMembership(),
                             cardUserAttributes(),
+                            cardEmergencyContact(),
                             cardPassword(),
                             cardLeaveApp()
                             ],

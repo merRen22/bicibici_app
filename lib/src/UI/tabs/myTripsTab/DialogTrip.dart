@@ -48,10 +48,10 @@ class _DialogTripState extends State<DialogTrip> {
         elevation: 8,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(20,8,8,8),
                                   child: Text("${(calculateCO2().toStringAsFixed(2))} gr",style: TextStyles.mediumPurpleFatText(),),
@@ -104,7 +104,15 @@ class _DialogTripState extends State<DialogTrip> {
                                   ),
                               ],
                             ),
-                            
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(20,8,8,8),
+                                  child: Text("Soles ahorrados ${(calculateCost(calculateDistance(widget.viaje.originLatitude,widget.viaje.originLongitude,widget.viaje.destinationLatitude,widget.viaje.destinationLongitude)).toStringAsFixed(2))}",style: TextStyles.smallBlackFatText(),),
+                                  ),
+                              ],
+                            ),
                               ],
                             ),
                           ))])))));
@@ -112,6 +120,10 @@ class _DialogTripState extends State<DialogTrip> {
 
   double calculateCO2(){
     return 171.7*calculateDistance(widget.viaje.originLatitude,widget.viaje.originLongitude,widget.viaje.destinationLatitude,widget.viaje.destinationLongitude);
+  }
+  
+  double calculateCost(double distance){
+    return 0.2479*distance;
   }
   
   double calculateDistance(lat1, lon1, lat2, lon2){

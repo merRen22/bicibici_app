@@ -29,8 +29,8 @@ class PaymentService {
     return usuario;
   }
 
-  Future<Payment> obtenerMembresiaUsuario(String uuidUser)async {
-    Payment payment = Payment();
+  Future<User> obtenerMembresiaUsuario(String uuidUser)async {
+    User user = User();
     var dataJson = json.encode({'uuidUser': uuidUser});
 
     try {
@@ -38,14 +38,16 @@ class PaymentService {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
           if(parsedJson['sucess']){
-            payment = Payment.fromJson(parsedJson['user']['payments']);
+            user.contactoEmergencia = parsedJson['user']['emergencyContact'].toString();
+            user.pago = Payment();
+            user.pago = Payment.fromJson(parsedJson['user']['payments']);
           }
         }
       });
     } catch (error) {
-      payment = Payment();
+      print(error);
     }
-    return payment;
+    return user;
   }
 
   Future<User> obtenerMembresiaUsuarioUsuario(String uuidUser)async {

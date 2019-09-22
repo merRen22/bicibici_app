@@ -1,4 +1,5 @@
 import 'package:bicibici/src/Values/SnackBars.dart';
+import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:flutter/material.dart';
 import '../../Models/User.dart';
 import '../../Values/Constants.dart';
@@ -19,6 +20,7 @@ class ConfirmationScreen extends StatefulWidget {
 
 class _ConfirmationScreenState extends State<ConfirmationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isDataLoading = false;
   String confirmationCode;
   User _user = User();
   final _userService = UserService(Constants.userPool);
@@ -29,12 +31,13 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
   _submit(BuildContext context) async {
     if(_formMailKey.currentState.value.toString().isEmpty  || _formConfirmationKey.currentState.value.toString().isEmpty){
       SnackBars.showOrangeMessage(context, 'Debe de completar todos los campos');
-    }
-    bool accountConfirmed;
+    }else{
+    bool accountConfirmed = false;
     String message;
     _user.email = _formMailKey.currentState.value.toString();
     confirmationCode = _formConfirmationKey.currentState.value.toString();
     try {
+      setState(() {_isDataLoading = true; });
       accountConfirmed = await _userService.confirmAccount(_user.email, confirmationCode);
       message = 'Cuenta confirmada';
     } on CognitoClientException catch (e) {
@@ -70,29 +73,36 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       backgroundColor: accountConfirmed?Colors.green:Colors.orange,
       duration: Duration(seconds: 30),
     );
-
+    
+    setState(() {_isDataLoading = false; });
     Scaffold.of(context).showSnackBar(snackBar);
+    }
   }
 
   _resendConfirmation(BuildContext context) async {
     if(_formMailKey.currentState.value.toString().isEmpty){
       SnackBars.showOrangeMessage(context, 'Debe de poner un correo para enviar el codigo');
     }else{
-
-    try {
-      await _userService.resendConfirmationCode(_formMailKey.currentState.value);
-      SnackBars.showOrangeMessage(context, 'Codigo de confirmación enviado a ${_formMailKey.currentState.value.toString()}');
-    } on CognitoClientException catch (e) {
-      if (e.code == 'LimitExceededException' ||
-          e.code == 'InvalidParameterException' ||
-          e.code == 'ResourceNotFoundException') {
+      setState(() {_isDataLoading = true; });
+      try {
+        await _userService.resendConfirmationCode(_formMailKey.currentState.value);
+        setState(() {_isDataLoading = false; });
+        SnackBars.showOrangeMessage(context, 'Codigo de confirmación enviado a ${(_formMailKey.currentState.value)}');
+      } on CognitoClientException catch (e) {
+        if (e.code == 'LimitExceededException' ||
+            e.code == 'InvalidParameterException' ||
+            e.code == 'ResourceNotFoundException') {
+            setState(() {_isDataLoading = false; });
+            SnackBars.showRedMessage(context, "Hubo un error inesperado");
+        } else {
+          setState(() {_isDataLoading = false; });
           SnackBars.showRedMessage(context, "Hubo un error inesperado");
-      } else {
-          SnackBars.showRedMessage(context, "Hubo un error inesperado");
+        }
+      } catch (e) {
+        print(e);
+        setState(() {_isDataLoading = false; });
+        SnackBars.showRedMessage(context, "Hubo un error inesperado");
       }
-    } catch (e) {
-          SnackBars.showRedMessage(context, "Hubo un error inesperado");
-    }
     }
   }
 
@@ -106,7 +116,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
         title: Text('bicibici', style: TextStyles.mediumPurpleFatText()),
       ),
       body: Builder(
-          builder: (BuildContext context) => new Container(
+          builder: (BuildContext context) => _isDataLoading
+          ?UtilityWidget.containerloadingIndicator(context)
+          :Container(
                 child: Form(
                   key: _formKey,
                   child: ListView(

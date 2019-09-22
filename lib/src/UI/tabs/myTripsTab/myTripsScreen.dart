@@ -18,6 +18,7 @@ class MyTripsScreenState extends State<MyTripsScreen> {
   bool _isDataLoading = true;
   List trips;
   double totalDistance = 0.0;
+  double totalPoints = 0.0;
 
   Widget userExperience(){
     return Card(
@@ -36,8 +37,8 @@ class MyTripsScreenState extends State<MyTripsScreen> {
                   animation: true,
                   lineHeight: 20.0,
                   animationDuration: 2500,
-                  percent: (totalDistance/10).round()/300*100/100,
-                  center: Text((totalDistance/10).round().toString() + "/300 puntos",style: TextStyles.smallPurpleFatText() ,),
+                  percent: totalPoints/300*100/100,
+                  center: Text( totalPoints.toString() + "/300 puntos",style: TextStyles.smallPurpleFatText() ,),
                   linearStrokeCap: LinearStrokeCap.roundAll,
                   progressColor: Colors.greenAccent[400],
                 ),
@@ -158,7 +159,7 @@ class MyTripsScreenState extends State<MyTripsScreen> {
                                   text: TextSpan(
                                     style: TextStyles.smallBlackFatText(),
                                     children: [
-                                      TextSpan(text: "${(10)}",style: TextStyles.smallPurpleFatText(),),
+                                      TextSpan(text: "${(calculateCost(totalDistance).toStringAsFixed(2))}",style: TextStyles.smallPurpleFatText(),),
                                       TextSpan(text: " soles ahorrados"),
                                     ]
                                   ),
@@ -232,11 +233,11 @@ class MyTripsScreenState extends State<MyTripsScreen> {
   }
   
   Future _obtenerViajesUsuario() async {
-    
     String uuid = (await userPresenter.presenter.getCurrentUser()).email;
     await presenter.obtenerViajesUsuario(uuid).then((response){
-      trips = response;
+      trips = response.viajes;
       totalDistance = getTotalDistance();
+      totalPoints = double.parse((totalDistance/10).round().toString()) + response.puntaje;
       setState(() {
         _isDataLoading = false;
       });
@@ -297,6 +298,10 @@ class MyTripsScreenState extends State<MyTripsScreen> {
     return 171.7*totalDistance;
   }
   
+  double calculateCost(double distance){
+    return 0.2479*distance;
+  }
+
   double calculateCO2byTrip(Trip trip){
     return 171.7*calculateDistance(trip.originLatitude,trip.originLongitude,trip.destinationLatitude,trip.destinationLongitude);
   }

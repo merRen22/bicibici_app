@@ -28,7 +28,7 @@ class UserService {
 
   /// Get existing user from session with his/her attributes
   Future<User> getCurrentUser() async {
-    //_cognitoUser = new CognitoUser(email, _userPool, storage: _userPool.storage);
+    //_cognitoUser = CognitoUser(email, _userPool, storage: _userPool.storage);
     if (_cognitoUser == null || _session == null || !_session.isValid()) {
       return null;
     }
@@ -166,6 +166,29 @@ class UserService {
       _userDataUpadted = false;
     }
     return _userDataUpadted;
+  }
+  
+  Future<String> forgotPassword(String email) async {
+    String data;
+    try {
+      final cognitoUser = CognitoUser(email, _userPool);
+      data = await cognitoUser.forgotPassword();
+    } catch (e) {
+      print(e);
+      data = "";
+    }
+    return data;
+  }
+  
+  Future<bool> newPassword(User user) async {
+    bool passwordChange = false;
+    try {
+      final cognitoUser = CognitoUser(user.email, _userPool);
+      passwordChange = await cognitoUser.confirmPassword(user.codigo, user.password);
+    } catch (e) {
+      print(e);
+    }
+    return passwordChange;
   }
 
 }

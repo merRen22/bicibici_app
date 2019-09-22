@@ -1,8 +1,11 @@
 import 'package:amazon_cognito_identity_dart/cognito.dart';
+import 'package:bicibici/src/Models/Payment.dart';
+import 'package:bicibici/src/Models/Trip.dart';
 
 class User {
   String email;
   String name;
+  String codigo;
   String password;
   String address;
   String phone;
@@ -10,6 +13,11 @@ class User {
 
   String oldPassword;
   String newPassword;
+
+  List<Trip> viajes;
+  Payment pago;
+  String contactoEmergencia;
+  double puntaje;
 
   bool confirmed = false;
   bool hasAccess = false;
@@ -40,6 +48,7 @@ class User {
   factory User.fromJson(parsedJson) {
     final user = User();
     user.activo = parsedJson['activo'];
+    user.contactoEmergencia = parsedJson['emergencyContact'];
     return user;
   }
 

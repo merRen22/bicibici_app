@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:bicibici/src/Models/Report.dart';
 import 'package:bicibici/src/Models/Trip.dart';
+import 'package:bicibici/src/Models/User.dart';
 import 'package:http/http.dart' as Client;
 import 'package:bicibici/src/Services/Configuration.dart';
 
 class TripsService {
 
-  Future<List<Trip>> obtenerViajesUsuario(String uuidUser)async {
-    List<Trip> trips = List<Trip>();
+  Future<User> obtenerViajesUsuario(String uuidUser)async {
+    User auxUser = User();
     var dataJson = json.encode({'uuidUser': uuidUser});
 
     try {
@@ -16,14 +17,16 @@ class TripsService {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
           if(parsedJson['sucess']){
-            (parsedJson['user']['trips'] as Map).forEach((key,element)=>trips.add(Trip.fromJson(key,element)));
+            auxUser.viajes = List<Trip>();
+            auxUser.puntaje = double.parse(parsedJson['user']['experience'].toString());
+            (parsedJson['user']['trips'] as Map).forEach((key,element)=>auxUser.viajes.add(Trip.fromJson(key,element)));
           }
         }
       });
     } catch (error) {
-      trips = List<Trip>();
+      print(error);
     }
-    return trips;
+    return auxUser;
   }
 
   
@@ -94,8 +97,25 @@ class TripsService {
     }
     return result;
   }
-
   
+  Future<bool> registerEmergencyContact(User user)async {
+    bool result = false;
+    var dataJson = json.encode({
+      "uuidUser":user.email,
+      "emergencyContact":user.contactoEmergencia
+    });
 
+    try {
+      await Client.post(Configuration.registrarContactoEmeregencia,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
+        if (response.statusCode == 200) {
+          Map<String, dynamic> parsedJson = json.decode(response.body);
+          result = true;          
+        }
+      });
+    } catch (error) {
+      result = false;          
+    }
+    return result;
+  }
 }
 

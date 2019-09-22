@@ -22,10 +22,13 @@ class _DialogPagarState extends State<DialogPagar> {
 
   _makePayment(BuildContext scaContext) async {
     User userAux = await presenter.getCurrentUser();
+    setState(() {isDataLoading = true;});
     await presenter.registrarPago(widget.plan, userAux.email).then((response){
       if(response){
         Navigator.of(context).pop("success");
+        setState(() {isDataLoading = false;});
       }else{
+        setState(() {isDataLoading = false;});
         SnackBars.showRedMessage(scaContext, "Hubo un problema en la red no se pudo registrar el pago");
       }
     });

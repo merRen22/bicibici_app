@@ -1,5 +1,6 @@
 import 'package:bicibici/src/Models/User.dart';
 import 'package:bicibici/src/Services/UserService.dart';
+import 'package:bicibici/src/UI/Login/ForgotPassword.dart';
 import 'package:bicibici/src/UI/login/ConfirmationScreen.dart';
 import 'package:bicibici/src/UI/login/SingUpScreen.dart';
 import 'package:bicibici/src/UI/tabs/HomeScreen.dart';
@@ -23,43 +24,60 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _userService = UserService(Constants.userPool);
   User _user = User();
+  bool _isDataLoading = false;
   bool _isAuthenticated = false;
   bool _passwordVisible = true;
   
   var _formMailKey = GlobalKey<FormFieldState>();
   var _formPasswordKey = GlobalKey<FormFieldState>();
 
-  Future<UserService> _getValues() async {
-    await _userService.init();
-    _isAuthenticated = await _userService.checkAuthenticated();
-    return _userService;
+  _getValues() async {
+    await _userService.init();_isAuthenticated = await _userService.checkAuthenticated();
+    if (_isAuthenticated) {
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => HomeScreen()));
+    }else{
+      setState(() {
+       _isDataLoading = false;
+      });
+    }
   }
 
   submit(BuildContext context) async {
     if(_formMailKey.currentState.value.toString().isEmpty || _formPasswordKey.currentState.value.toString().isEmpty){
       SnackBars.showOrangeMessage(context, "Debe completar todos los campos");
     }else{
+      setState(() {
+        _isDataLoading = true;
+      });
       _user.email = _formMailKey.currentState.value.toString();
       _user.password = _formPasswordKey.currentState.value.toString();
     try {
       _user = await _userService.login(_user.email, _user.password);
       if (!_user.confirmed) {
+      setState(() {
+        _isDataLoading = false;
+      });
         Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
       }else{
-        Navigator.push(context,MaterialPageRoute(builder: (context) => HomeScreen()));
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => HomeScreen()));
       }
     } on CognitoClientException catch (e) {
       if (e.code == 'InvalidParameterException' ||
           e.code == 'NotAuthorizedException' ||
           e.code == 'UserNotFoundException' ||
           e.code == 'ResourceNotFoundException') {
+            setState(() {_isDataLoading = false;});
         SnackBars.showOrangeMessage(context, "No se encuentro al usuario en el sistema");
       } else {
+        setState(() {_isDataLoading = false;});
         //client error
         SnackBars.showRedMessage(context, "Hubo un error inesperado");
       }
     } catch (e) {
       //server side error
+      print(e);
+      setState(() {_isDataLoading = false;});
+      //hash code 325986495 confirmation code
       Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
       //SnackBars.showRedMessage(context, e.code);
     }
@@ -67,29 +85,27 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void initState() {
+    _getValues();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _getValues(),
-        builder: (context, AsyncSnapshot<UserService> snapshot) {
-          if (snapshot.hasData) {
-            return _isAuthenticated
-            ?HomeScreen()
-            :Scaffold(
+    return Builder(
+        builder: (context) {
+            return Scaffold(
               body: Builder(
                 builder: (BuildContext context) {
                   return Container(
-                    child: ListView(
+                    child: _isDataLoading
+                    ?UtilityWidget.containerloadingIndicator(context)
+                    :ListView(
                         children: <Widget>[
                           Padding(
                             padding: EdgeInsets.all(60),
                             child: 
-                          Text('bicibici',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                  fontFamily: "Roboto",
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.purple),),
+                          Text('bicibici',textAlign: TextAlign.center,style: TextStyles.extralargePurpleFatText(),),
                           ),
                           ListTile(
                             leading: const Icon(Icons.email),
@@ -162,16 +178,30 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12,0,12,12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[FlatButton(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        '   ¿Olvidaste tu contraseña?   ',
+                                        style: TextStyles.smallPurpleFatText(),
+                                      ),
+                                    ),
+                                    onPressed: () => Navigator.push(context,MaterialPageRoute(builder: (context) => ForgotPassword()),),
+                                    color: Colors.transparent,
+                                  ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                   );
                   },
               ),
             );
-          }
-          return Scaffold(
-            body: UtilityWidget.containerloadingIndicator(context),
-          );
         });
   }
 }

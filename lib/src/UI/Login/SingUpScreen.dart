@@ -1,4 +1,5 @@
 import 'package:bicibici/src/Values/SnackBars.dart';
+import 'package:bicibici/src/Values/UtilityWidgets.dart';
 import 'package:flutter/material.dart';
 import '../../Models/User.dart';
 import '../../Values/Constants.dart';
@@ -16,6 +17,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   User _user = User();
   bool passwordVisible = true;
+  bool _isDataLoading = false;
   final userService = UserService(Constants.userPool);
   
   var _formMailKey = GlobalKey<FormFieldState>();
@@ -48,10 +50,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _user.name = _formNameKey.currentState.value.toString();
         _user.address = _formAddressKey.currentState.value.toString();
         _user.phone = "+51" +  _formPhoneKey.currentState.value.toString();
+        setState(() {
+         _isDataLoading = true; 
+        });
         try {
           _user = await userService.signUp(_user);
           Navigator.push(context,MaterialPageRoute(builder: (context) => ConfirmationScreen(email: _user.email)),);
+          setState(() {_isDataLoading = false; });
         } on CognitoClientException catch (e) {
+          setState(() {_isDataLoading = false; });
           if (e.code == 'UsernameExistsException' ||
               e.code == 'InvalidParameterException' ||
               e.code == 'ResourceNotFoundException') {
@@ -60,6 +67,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             SnackBars.showOrangeMessage(context, 'Los campos no cumplen con las condiciones necesarias');
           }
         } catch (e) {
+        setState(() {
+         _isDataLoading = false; 
+        });
           SnackBars.showRedMessage(context, "Hubo un error inesperado");
         }
 
@@ -78,7 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: Builder(
         builder: (BuildContext context) {
-          return ListView(
+          return _isDataLoading
+              ?UtilityWidget.containerloadingIndicator(context)
+              :ListView(
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.all(8.0),

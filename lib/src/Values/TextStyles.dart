@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 
 class TextStyles {
 
-  
   static TextStyle extralargeGreenFatText() {
     return TextStyle(
         fontFamily: "Roboto",
         fontSize: 48,
         fontWeight: FontWeight.w700,
         color: Colors.greenAccent[400]);
+  }
+  
+  static TextStyle extralargePurpleFatText() {
+    return TextStyle(
+        fontFamily: "Roboto",
+        fontSize: 48,
+        fontWeight: FontWeight.w700,
+        color: Colors.purple);
   }
 
   

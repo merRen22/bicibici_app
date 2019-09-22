@@ -62,16 +62,13 @@ class _MapScreenState extends State<MapScreen>{
       icon: await _createMarkerImageFromAsset('images/bikeparking.png'),
         position: LatLng(request.latitude, request.longitude),
         onTap: () async {
-          //MapCustomDialogs.progressDialog(context: context, message: 'Fetching');
-          //await _fetchrequestName(requestId);
-          //Navigator.pop(context);
           return showModalBottomSheet(
               backgroundColor: Colors.transparent,
               context: context,
               builder: (BuildContext context) {
                 return Container(
                   margin: const EdgeInsets.all(8.0),
-                  height: 150.0,
+                  height: 170.0,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -90,7 +87,7 @@ class _MapScreenState extends State<MapScreen>{
                                 style: TextStyles.mediumBlackFatText(),
                               ),
                               Text(
-                                (request.availableSlots).toString() + " bicicletas disponibles",
+                                (request.totalSlots - request.availableSlots).toString() + " bicicletas disponibles",
                                 style: TextStyles.smallPurpleFatText(),
                               ),
                               Text(
@@ -101,18 +98,23 @@ class _MapScreenState extends State<MapScreen>{
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
-                                  FlatButton(
-                                    color: Colors.purple,
-                                    onPressed: (){
-                                      Navigator.of(context).pop();
-                                      auxTrip.uuidStation = request.uuidStation;
-                                      auxTrip.destinationLatitude = request.latitude;
-                                      auxTrip.destinationLongitude = request.longitude;
-                                      showModalUserUsage(request);
-                                      userState = 3; 
-                                    },
-                                    shape: StadiumBorder(),
-                                    child: Text("Reservar espacio", style: TextStyles.smallWhiteFatText(),),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: request.totalSlots - request.availableSlots < 0
+                                    ?Text("No hay espacios disponibles", style: TextStyles.smallPurpleFatText(),)
+                                    :FlatButton(
+                                      color: Colors.purple,
+                                      onPressed: (){
+                                        Navigator.of(context).pop();
+                                        auxTrip.uuidStation = request.uuidStation;
+                                        auxTrip.destinationLatitude = request.latitude;
+                                        auxTrip.destinationLongitude = request.longitude;
+                                        showModalUserUsage(request);
+                                        userState = 3; 
+                                      },
+                                      shape: StadiumBorder(),
+                                      child: Text("Reservar espacio", style: TextStyles.smallWhiteFatText(),),
+                                    ),
                                   )
                                 ],
                               )
@@ -240,28 +242,24 @@ class _MapScreenState extends State<MapScreen>{
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                 title: Text("contacto de emerrgencia",style: TextStyles.mediumPurpleFatText(),textAlign: TextAlign.center,),
                 content: Container(
-                  height: 180.0,
+                  height: 200.0,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Container(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    "MCaldas@gym.com",
-                                    style: TextStyles.smallBlackFatText(),
-                                    textAlign: TextAlign.center,
+                            children: <Widget>[Container(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      userAux.contactoEmergencia == "none"?"Aún no haz incluido un contacto de emergencia":userAux.contactoEmergencia,
+                                      style: TextStyles.smallBlackFatText(),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
                                 ),
-                              ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
@@ -275,15 +273,33 @@ class _MapScreenState extends State<MapScreen>{
                                         userState = 3;
                                       },
                                       shape: StadiumBorder(),
-                                      child: Text("Iniciar viaje", style: TextStyles.smallWhiteFatText(),),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(18.0),
+                                        child: Text("Iniciar viaje", style: TextStyles.smallWhiteFatText(),),
+                                      ),
                                     ),
-                                  )
-                                ],
+                                  ),
+                                  GestureDetector(
+          onTap: (){
+            userState = 1;
+            setState(() {});
+            Navigator.of(context).pop();
+          },
+          child: Container(
+              height: 50.0,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(30.0),
+                ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20,8,20,8),
+                  child: Icon(Icons.cancel,color: Colors.white),
+                  )))
+                                  )],
                               )
                             ],
                           ),
-                        ],
-                      ),
                     ],
                   ),
                 ));});
@@ -294,6 +310,7 @@ class _MapScreenState extends State<MapScreen>{
     auxTrip.uuidUser = userAux.email;
     await presenter.obtenerDataUsuario(userAux.email).then((response){
       userState = response.activo == 0?0:1;
+      userAux.contactoEmergencia = response.contactoEmergencia;
       userAux.activo = response.activo;
     });
       setState(() {
@@ -441,10 +458,25 @@ class _MapScreenState extends State<MapScreen>{
                 child: Text("Selecciona una estación",
                 style: TextStyles.smallWhiteFatText(),
                 textAlign: TextAlign.center,
+                )))),
+        SizedBox(width: 10,),
+        GestureDetector(
+          onTap: (){
+            userState = 1;
+            setState(() {});
+          },
+          child: Container(
+              height: 50.0,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(30.0),
                 ),
-                ),
-                              ),
-                            )
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20,8,20,8),
+                  child: Icon(Icons.cancel,color: Colors.white),
+                  ))),
+        )
                           ],
                         );
   }
@@ -460,7 +492,7 @@ class _MapScreenState extends State<MapScreen>{
             bool response  = await presenter.bloquearBicicleta(auxTrip);
             Navigator.of(context).pop();
             !response
-            ?SnackBars.showRedMessage(context, "no pudimos daer por finalizado tu viaje, intentalo en otro momento")
+            ?SnackBars.showRedMessage(context, "No pudimos daer por finalizado tu viaje, intentalo en otro momento")
             :setState(() {
              userState = 1; 
             });
@@ -484,7 +516,10 @@ class _MapScreenState extends State<MapScreen>{
     return Container(
             height: (MediaQuery.of(context).size).height,
             child: Center(
-              child: Text("No pudimos obtener tu posición activa tu GPS o sal al aire libre",style: TextStyles.smallBlackFatText(),),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text("No pudimos obtener tu posición activa tu GPS o sal al aire libre",style: TextStyles.mediumBlackFatText(),),
+              ),
             ),
     );
   }
@@ -499,7 +534,7 @@ class _MapScreenState extends State<MapScreen>{
                     (BuildContext context, bool innerBoxIsScrolled) {
                   return <Widget>[];
                 },
-                body: _locationError
+                body: _locationError || (_isDataLoading == true && userPosition == null)
                 ?containerPostionError(context)
                 :_isDataLoading
                 ?UtilityWidget.containerloadingIndicator(context)
