@@ -42,7 +42,6 @@ class _MapScreenState extends State<MapScreen>{
     auxTrip = Trip();
     _obtenerDataUsuario();
     _getUserPosition();
-    _getNearStations();
     super.initState();
   }
 
@@ -91,7 +90,7 @@ class _MapScreenState extends State<MapScreen>{
                                 style: TextStyles.mediumBlackFatText(),
                               ),
                               Text(
-                                (request.totalSlots - request.availableSlots).toString() + " bicicletas disponibles",
+                                (request.availableSlots).toString() + " bicicletas disponibles",
                                 style: TextStyles.smallPurpleFatText(),
                               ),
                               Text(
@@ -311,6 +310,7 @@ class _MapScreenState extends State<MapScreen>{
       }else{
         auxTrip.originLatitude = userPosition.latitude;
         auxTrip.originLongitude = userPosition.longitude; 
+        _getNearStations();
       }
   }
 
@@ -327,7 +327,7 @@ class _MapScreenState extends State<MapScreen>{
   }
 
   Future _getNearStations() async {
-      await presenter.getNearStations(-12.113944,-77.036759).then((response){
+      await presenter.getNearStations(userPosition.latitude,userPosition.longitude).then((response){
         response.forEach((element)=>initMarker(element,element.uuidStation));
       });
   }
@@ -459,7 +459,7 @@ class _MapScreenState extends State<MapScreen>{
             await _getUserEndPosition();
             bool response  = await presenter.bloquearBicicleta(auxTrip);
             Navigator.of(context).pop();
-            response
+            !response
             ?SnackBars.showRedMessage(context, "no pudimos daer por finalizado tu viaje, intentalo en otro momento")
             :setState(() {
              userState = 1; 
