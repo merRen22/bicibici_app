@@ -12,7 +12,7 @@ class Station{
    obj.longitude = parsedJson['longitude'];
    obj.address = parsedJson['address'];
    obj.totalSlots = parsedJson['totalSlots'];
-   obj.availableSlots = parsedJson['availableSlots'];
+   obj.availableSlots = int.parse(parsedJson['availableSlots'].toString()) ;
    return obj;
  }
 }
