@@ -86,6 +86,7 @@ class _DialogTripState extends State<DialogTrip> {
                                 ),
                               ],
                             ),
+                            if(widget.viaje.endDate!="none")
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[

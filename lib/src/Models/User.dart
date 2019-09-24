@@ -3,7 +3,7 @@ import 'package:bicibici/src/Models/Payment.dart';
 import 'package:bicibici/src/Models/Trip.dart';
 
 class User {
-  String email;
+  String email, uuidBike;
   String name;
   String codigo;
   String password;
@@ -49,6 +49,7 @@ class User {
     final user = User();
     user.activo = parsedJson['activo'];
     user.contactoEmergencia = parsedJson['emergencyContact'];
+    user.uuidBike = parsedJson['uuidBike'];
     return user;
   }
 

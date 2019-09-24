@@ -38,7 +38,7 @@ class MyTripsScreenState extends State<MyTripsScreen> {
                   lineHeight: 20.0,
                   animationDuration: 2500,
                   percent: totalPoints/300*100/100,
-                  center: Text( totalPoints.toString() + "/300 puntos",style: TextStyles.smallPurpleFatText() ,),
+                  center: Text( totalPoints.toStringAsFixed(2) + "/300 puntos",style: TextStyles.smallPurpleFatText() ,),
                   linearStrokeCap: LinearStrokeCap.roundAll,
                   progressColor: Colors.greenAccent[400],
                 ),
@@ -237,7 +237,7 @@ class MyTripsScreenState extends State<MyTripsScreen> {
     await presenter.obtenerViajesUsuario(uuid).then((response){
       trips = response.viajes;
       totalDistance = getTotalDistance();
-      totalPoints = double.parse((totalDistance/10).round().toString()) + response.puntaje;
+      totalPoints = double.parse((totalDistance/10).round().toStringAsFixed(2)) + response.puntaje;
       setState(() {
         _isDataLoading = false;
       });

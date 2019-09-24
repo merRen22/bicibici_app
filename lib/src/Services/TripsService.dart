@@ -36,8 +36,10 @@ class TripsService {
       "uuidUser":trip.uuidUser,
       "uuidBike":trip.uuidBike,
       "uuidStation":trip.uuidStation,
-      "originLatitude":trip.originLatitude,
-      "originLongitude":trip.originLongitude,
+      "originLatitude":-12.1062367,
+      "originLongitude":-77.0240602,
+      //"originLatitude":trip.originLatitude,
+      //"originLongitude":trip.originLongitude,
       "destinationLatitude":trip.destinationLatitude,
       "destinationLongitude":trip.destinationLongitude
     });
@@ -46,7 +48,9 @@ class TripsService {
       await Client.post(Configuration.desbloquearBicicleta,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
-          result = true;          
+          result = parsedJson['message'] == "Se registro con exito el nuevo viaje";
+        }else{
+          result = false;          
         }
       });
     } catch (error) {
@@ -60,19 +64,23 @@ class TripsService {
     var dataJson = json.encode({
       "uuidUser":trip.uuidUser,
       "uuidBike":trip.uuidBike,
-      "latitude":trip.destinationLatitude,
-      "longitude":trip.destinationLongitude
+      "latitude":-12.1062367,
+      "longitude":-77.0240602,
+      //"latitude":trip.destinationLatitude,
+      //"longitude":trip.destinationLongitude
     });
 
     try {
       await Client.post(Configuration.bloquearBicicleta,headers: Configuration.headerRequest,body: dataJson).then((Client.Response response) {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
-          if(parsedJson['message'] == "No se encuentra en el estacionamiento"){
-            result = false;          
-          }else{
+          if(
+            parsedJson['message'] == 'Se registro con exito el nuevo viaje'
+            ){
             result = true;          
           }
+        }else{
+          result = false;          
         }
       });
     } catch (error) {
@@ -90,6 +98,8 @@ class TripsService {
         if (response.statusCode == 200) {
           Map<String, dynamic> parsedJson = json.decode(response.body);
           result = true;          
+        }else{
+          result = false;          
         }
       });
     } catch (error) {

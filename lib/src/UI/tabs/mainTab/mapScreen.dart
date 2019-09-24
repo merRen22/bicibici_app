@@ -56,7 +56,6 @@ class _MapScreenState extends State<MapScreen>{
   void initMarker(request, requestId) async {
     var markerIdVal = requestId;
     final MarkerId markerId = MarkerId(markerIdVal);
-    // creating a new MARKER
     final Marker marker = Marker(
         markerId: markerId,
       icon: await _createMarkerImageFromAsset('images/bikeparking.png'),
@@ -86,10 +85,12 @@ class _MapScreenState extends State<MapScreen>{
                                 request.address,
                                 style: TextStyles.mediumBlackFatText(),
                               ),
+                              //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                               Text(
                                 (request.totalSlots - request.availableSlots).toString() + " bicicletas disponibles",
                                 style: TextStyles.smallPurpleFatText(),
                               ),
+                              //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                               Text(
                                 request.availableSlots.toString() + " espacios disponibles",
                                 style: TextStyles.smallPurpleFatText(),
@@ -98,6 +99,7 @@ class _MapScreenState extends State<MapScreen>{
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
+                                  //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: request.totalSlots - request.availableSlots < 0
@@ -109,6 +111,7 @@ class _MapScreenState extends State<MapScreen>{
                                         auxTrip.uuidStation = request.uuidStation;
                                         auxTrip.destinationLatitude = request.latitude;
                                         auxTrip.destinationLongitude = request.longitude;
+                                        //request.availableSlots = request.availableSlots - 1;
                                         showModalUserUsage(request);
                                         userState = 3; 
                                       },
@@ -267,10 +270,19 @@ class _MapScreenState extends State<MapScreen>{
                                       color: Colors.purple,
                                       onPressed: () async {
                                         MapCustomDialogs.progressDialog(context: context,message: "Preparamos tu viaje");
-                                        await presenter.desbloquearBicicleta(auxTrip);
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                        userState = 3;
+                                        await presenter.desbloquearBicicleta(auxTrip).then((response){                             
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
+                                          if(response){
+                                            userState = 3;
+                                            //cambio arrrelgar numeor de estaiconamientos
+                                            _getNearStations();
+                                          }else{
+                                            userState = 1;
+                                            setState(() {});
+                                            SnackBars.showRedMessage(context, "Debes encontrarte cerca de la bicicleta para poder usarla");
+                                          }
+                                        });           
                                       },
                                       shape: StadiumBorder(),
                                       child: Padding(
@@ -312,6 +324,11 @@ class _MapScreenState extends State<MapScreen>{
       userState = response.activo == 0?0:1;
       userAux.contactoEmergencia = response.contactoEmergencia;
       userAux.activo = response.activo;
+      userAux.uuidBike = response.uuidBike;
+      if(response.uuidBike != "none"){
+        auxTrip.uuidBike = response.uuidBike;
+        userState = 3;
+      }
     });
       setState(() {
         _isDataLoading = false;
@@ -327,6 +344,8 @@ class _MapScreenState extends State<MapScreen>{
       }else{
         auxTrip.originLatitude = userPosition.latitude;
         auxTrip.originLongitude = userPosition.longitude; 
+        auxTrip.destinationLatitude = userPosition.latitude;
+        auxTrip.destinationLongitude = userPosition.longitude; 
         _getNearStations();
       }
   }
@@ -345,6 +364,7 @@ class _MapScreenState extends State<MapScreen>{
 
   Future _getNearStations() async {
       await presenter.getNearStations(userPosition.latitude,userPosition.longitude).then((response){
+        markers = <MarkerId, Marker>{};
         response.forEach((element)=>initMarker(element,element.uuidStation));
       });
   }
@@ -370,12 +390,6 @@ class _MapScreenState extends State<MapScreen>{
       }
     });
   }
-
-/*
-  void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
-  }
-  */
 
   Widget getUserState(){
     Widget aux;
@@ -492,7 +506,7 @@ class _MapScreenState extends State<MapScreen>{
             bool response  = await presenter.bloquearBicicleta(auxTrip);
             Navigator.of(context).pop();
             !response
-            ?SnackBars.showRedMessage(context, "No pudimos daer por finalizado tu viaje, intentalo en otro momento")
+            ?SnackBars.showRedMessage(context, "No pudimos dar por finalizado tu viaje, intentalo nuevamente")
             :setState(() {
              userState = 1; 
             });
@@ -518,7 +532,22 @@ class _MapScreenState extends State<MapScreen>{
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("No pudimos obtener tu posición activa tu GPS o sal al aire libre",style: TextStyles.mediumBlackFatText(),),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Estamos obteniendo tu ubicación",style: TextStyles.mediumBlackFatText(),),
+                    ),
+                    SizedBox(height: 15,),
+                    Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(Colors.purple),
+                        strokeWidth: 5.0,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
     );
@@ -588,3 +617,5 @@ class _MapScreenState extends State<MapScreen>{
   }
 
 }
+
+//vovler apoenr elc odncinal de no estaicon cercana y avlao0re de latitude yu longitudr
