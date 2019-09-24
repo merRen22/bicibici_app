@@ -36,10 +36,8 @@ class TripsService {
       "uuidUser":trip.uuidUser,
       "uuidBike":trip.uuidBike,
       "uuidStation":trip.uuidStation,
-      "originLatitude":-12.1062367,
-      "originLongitude":-77.0240602,
-      //"originLatitude":trip.originLatitude,
-      //"originLongitude":trip.originLongitude,
+      "originLatitude":trip.originLatitude,
+      "originLongitude":trip.originLongitude,
       "destinationLatitude":trip.destinationLatitude,
       "destinationLongitude":trip.destinationLongitude
     });
@@ -64,10 +62,8 @@ class TripsService {
     var dataJson = json.encode({
       "uuidUser":trip.uuidUser,
       "uuidBike":trip.uuidBike,
-      "latitude":-12.1062367,
-      "longitude":-77.0240602,
-      //"latitude":trip.destinationLatitude,
-      //"longitude":trip.destinationLongitude
+      "latitude":trip.destinationLatitude,
+      "longitude":trip.destinationLongitude
     });
 
     try {

@@ -85,12 +85,10 @@ class _MapScreenState extends State<MapScreen>{
                                 request.address,
                                 style: TextStyles.mediumBlackFatText(),
                               ),
-                              //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                               Text(
                                 (request.totalSlots - request.availableSlots).toString() + " bicicletas disponibles",
                                 style: TextStyles.smallPurpleFatText(),
                               ),
-                              //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                               Text(
                                 request.availableSlots.toString() + " espacios disponibles",
                                 style: TextStyles.smallPurpleFatText(),
@@ -99,7 +97,7 @@ class _MapScreenState extends State<MapScreen>{
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
-                                  //if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
+                                  if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: request.totalSlots - request.availableSlots < 0
@@ -111,7 +109,6 @@ class _MapScreenState extends State<MapScreen>{
                                         auxTrip.uuidStation = request.uuidStation;
                                         auxTrip.destinationLatitude = request.latitude;
                                         auxTrip.destinationLongitude = request.longitude;
-                                        //request.availableSlots = request.availableSlots - 1;
                                         showModalUserUsage(request);
                                         userState = 3; 
                                       },
@@ -617,5 +614,3 @@ class _MapScreenState extends State<MapScreen>{
   }
 
 }
-
-//vovler apoenr elc odncinal de no estaicon cercana y avlao0re de latitude yu longitudr
