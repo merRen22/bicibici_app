@@ -31,6 +31,7 @@ class _MapScreenState extends State<MapScreen>{
   ///3 -> user needs to 
   int userState = 0;
   bool _isDataLoading = true;
+  bool _isMapLoading = true;
   bool _locationError = false;
   User userAux;
   Trip auxTrip;
@@ -97,7 +98,7 @@ class _MapScreenState extends State<MapScreen>{
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: <Widget>[
-                                  if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.2)
+                                  if(calculateDistance(userPosition.latitude, userPosition.longitude,request.latitude,request.longitude)>0.01)
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: request.totalSlots - request.availableSlots < 0
@@ -334,7 +335,13 @@ class _MapScreenState extends State<MapScreen>{
 
   Future _getUserPosition() async {
       userPosition = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      if(userPosition == null || userPosition.latitude == null){
+      if(
+        userPosition == null || 
+        userPosition.latitude == null  || 
+        userPosition.longitude == null || 
+        userPosition.latitude == 0.0  || 
+        userPosition.longitude == 0.0
+        ){
         setState(() {
          _locationError = true; 
         });
@@ -344,6 +351,9 @@ class _MapScreenState extends State<MapScreen>{
         auxTrip.destinationLatitude = userPosition.latitude;
         auxTrip.destinationLongitude = userPosition.longitude; 
         _getNearStations();
+        setState(() {
+          _isMapLoading = false;
+        });
       }
   }
 
@@ -560,7 +570,7 @@ class _MapScreenState extends State<MapScreen>{
                     (BuildContext context, bool innerBoxIsScrolled) {
                   return <Widget>[];
                 },
-                body: _locationError || (_isDataLoading == true && userPosition == null)
+                body: _locationError || (_isDataLoading == true && userPosition == null) || _isMapLoading
                 ?containerPostionError(context)
                 :_isDataLoading
                 ?UtilityWidget.containerloadingIndicator(context)
