@@ -48,7 +48,7 @@ class _MapScreenState extends State<MapScreen>{
 
   Future <BitmapDescriptor> _createMarkerImageFromAsset(String iconPath) async {
     BitmapDescriptor bitmapImage;
-    ImageConfiguration configuration = ImageConfiguration();
+    ImageConfiguration configuration = ImageConfiguration(size: Size(30, 30),devicePixelRatio: 3);
      bitmapImage = await BitmapDescriptor.fromAssetImage(configuration,iconPath);
 
     return bitmapImage;
