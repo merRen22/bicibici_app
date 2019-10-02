@@ -45,7 +45,7 @@ class ReportScreenState extends State<ReportScreen> {
       ){
         SnackBars.showOrangeMessage(contextSca, "Debes incluir una descripción en tu reporte");
       }else{
-        report.uuidBike??="";
+        report.uuidBike??="none";
         report.description = _formDescripcionKey.currentState.value.toString();
         report.uuidUser = widget.userEmail;
         report.longitude = widget.longitude;
