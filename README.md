@@ -2,7 +2,7 @@
 
 This project is a prototype of how a bike sharing system would be implemented. This repository contains the app that the users would use to request a ride by scanning a QR code. It also includes managment of user account using AWS Cognito and connection to an API build using NodeJS and AWS Lambda.
 
-# Google Maps
+## Google Maps
 
 In order to use this app a Google Maps Key needs to be added. This key needs to be created via the google cloud platform. Once this key is created it needs toi be inserted in the following files: AndroidManifest.xml and AppDelegate.swift
 
